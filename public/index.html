@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script id="vs" type="x-shader/x-vertex">
+
+        uniform mat4 modelMatrix;
+        uniform mat4 viewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat4 modelViewProjectionMatrix;
+
+        attribute vec4 position;
+        attribute vec3 normal;
+        attribute vec2 texcoord;
+
+        varying vec3 vNormal;
+        varying vec3 vFragPosition;
+        varying vec2 vTexcoord;
+        
+        void main() {
+          vNormal = mat3(modelMatrix) * normal;
+          vFragPosition = vec3(modelMatrix * position);
+          vTexcoord = texcoord;
+          gl_Position =  modelViewProjectionMatrix * position;
+        }
+          
+    </script>
+    <script id="fs" type="x-shader/x-fragment">
+
+        #define PI 3.1415926535897932384626433832795
+        #define MAX_MARCHING_STEPS 100
+
+        #ifdef GL_ES
+        // precision highp float;
+        precision mediump float;
+        #endif
+
+        uniform sampler2D code;
+        varying vec3 vNormal;
+        varying vec3 vFragPosition;
+        varying vec2 vTexcoord;
+
+        float pixel2float(vec4 pixel) {
+            float intR = pixel.r * 255.0;
+            float intG = pixel.g * 255.0;
+            float intB = pixel.b * 255.0;
+            float intA = pixel.a * 255.0;
+
+            float s1 = -step(127.0, intA);
+            float eLastBit = step(127.0, intB);
+            float e1 = (intA + s1 * 128.0) * 2.0 + eLastBit;
+            float m1 = (intB - eLastBit * 128.0) * 65536.0 + intG * 256.0 + intR;
+            float f1 = (s1 * 2.0 + 1.0) * (1.0 + m1 / 8388608.0) * pow(2.0, e1 - 127.0);
+            return f1;
+        }
+
+
+        vec4 run(sampler2D code) {
+            vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+            vec4 pixel = texture2D(code, vTexcoord);
+            float x = pixel2float(pixel);
+            if(x == 5.5)
+                color = vec4(1.0, 0.0, 0.0, 1.0);
+            return pixel;
+        }
+
+        void main() {
+            gl_FragColor = run(code);
+        }
+          
+    </script>
+    <canvas id="c"></canvas>
+</body>
+
+</html>
