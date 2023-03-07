@@ -1,6 +1,6 @@
 {
-  "name": "test-gpu",
-  "version": "1.0.0",
+  "name": "gl-punch-card",
+  "version": "0.0.1",
   "main": "src/index.ts",
   "license": "MIT",
   "scripts": {
@@ -22,5 +22,10 @@
     "@types/node": "^18.14.4",
     "buffer": "^6.0.3",
     "twgl.js": "^5.3.0"
+  },
+  "author": "yanjia qiu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qyjbeijing2017/gl-punch-card.git"
   }
 }
