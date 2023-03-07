@@ -48,15 +48,15 @@
         varying vec2 vTexcoord;
 
         float pixel2float(vec4 pixel) {
-            float intR = pixel.r * 255.0;
-            float intG = pixel.g * 255.0;
-            float intB = pixel.b * 255.0;
-            float intA = pixel.a * 255.0;
+            float rByte = pixel.r * 255.0;
+            float gByte = pixel.g * 255.0;
+            float bByte = pixel.b * 255.0;
+            float aByte = pixel.a * 255.0;
 
-            float s = -step(127.0, intA);
+            float s = -step(127.0, aByte);
             float eLastBit = step(127.0, intB);
-            float e = (intA + s * 128.0) * 2.0 + eLastBit;
-            float m = (intB - eLastBit * 128.0) * 65536.0 + intG * 256.0 + intR;
+            float e = (aByte + s * 128.0) * 2.0 + eLastBit;
+            float m = (bByte - eLastBit * 128.0) * 65536.0 + gByte * 256.0 + rByte;
             float f = (s * 2.0 + 1.0) * (1.0 + m / 8388608.0) * pow(2.0, e - 127.0);
             return f1;
         }
