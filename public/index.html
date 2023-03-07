@@ -53,11 +53,11 @@
             float intB = pixel.b * 255.0;
             float intA = pixel.a * 255.0;
 
-            float s1 = -step(127.0, intA);
+            float s = -step(127.0, intA);
             float eLastBit = step(127.0, intB);
-            float e1 = (intA + s1 * 128.0) * 2.0 + eLastBit;
-            float m1 = (intB - eLastBit * 128.0) * 65536.0 + intG * 256.0 + intR;
-            float f1 = (s1 * 2.0 + 1.0) * (1.0 + m1 / 8388608.0) * pow(2.0, e1 - 127.0);
+            float e = (intA + s * 128.0) * 2.0 + eLastBit;
+            float m = (intB - eLastBit * 128.0) * 65536.0 + intG * 256.0 + intR;
+            float f = (s * 2.0 + 1.0) * (1.0 + m / 8388608.0) * pow(2.0, e - 127.0);
             return f1;
         }
 

@@ -40,7 +40,6 @@ function main() {
     // const f1 = (s1 * 2.0 + 1.0) * (1.0 + m1 / 8388608.0) * Math.pow(2.0, e1 - 127.0);
 
 
-
     const canvas = document.getElementById('c') as HTMLCanvasElement;
     const gl = canvas.getContext('webgl2');
     if (!gl) {
