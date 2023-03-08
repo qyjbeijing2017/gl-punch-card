@@ -77,18 +77,13 @@ function main() {
     };
 
     const buffer1 = Buffer.alloc(16);
-    buffer1.writeFloatLE(3);
-    buffer1.writeFloatLE(3, 4);
-    buffer1.writeFloatLE(3, 8);
+    buffer1.writeFloatLE(2);
+    buffer1.writeFloatLE(2, 4);
+    buffer1.writeFloatLE(2, 8);
     buffer1.writeFloatLE(3, 12);
 
     const tex = twgl.createTexture(gl, {
-        src: [
-            buffer1[0], buffer1[1], buffer1[2], buffer1[3],
-            buffer1[4], buffer1[5], buffer1[6], buffer1[7],
-            buffer1[8], buffer1[9], buffer1[10], buffer1[11],
-            buffer1[12], buffer1[13], buffer1[14], buffer1[15],
-        ],
+        src: buffer1,
         wrap: gl.CLAMP_TO_EDGE,
         min: gl.NEAREST,
         mag: gl.NEAREST,

@@ -54,13 +54,12 @@
             float aByte = pixel.a * 255.0;
 
             float s = -step(127.0, aByte);
-            float eLastBit = step(127.0, intB);
+            float eLastBit = step(127.0, bByte);
             float e = (aByte + s * 128.0) * 2.0 + eLastBit;
             float m = (bByte - eLastBit * 128.0) * 65536.0 + gByte * 256.0 + rByte;
             float f = (s * 2.0 + 1.0) * (1.0 + m / 8388608.0) * pow(2.0, e - 127.0);
-            return f1;
+            return f;
         }
-
 
         vec4 run(sampler2D code) {
             vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
