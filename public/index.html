@@ -61,17 +61,49 @@
             return f;
         }
 
-        vec4 run(sampler2D code) {
-            vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
-            vec4 pixel = texture2D(code, vTexcoord);
-            float x = pixel2float(pixel);
-            if(x == 5.5)
-                color = vec4(1.0, 0.0, 0.0, 1.0);
-            return pixel;
+        float getCardData(sampler2D code, inout int pos, int width, int height) {
+            int y = pos / width;
+            int x = pos - y * width;
+            vec2 uv = vec2(float(x)/ float(width), float(y) / float(height));
+            vec4 pixel = texture2D(code, uv);
+            pos++;
+            return pixel2float(pixel);
+        }
+
+        struct Registers{
+            mat4  r[10];    // 0
+            int   pos;      // 1000
+            int   esp;      // 1001
+        };
+
+        struct PCInput{
+            float argf[100];
+            sampler2D argt[10];
+        };
+
+        struct PCOutput{
+            float data[100];
+            float code;
+        };
+
+        uniform PCInput pcinput;
+        PCOutput pcoutput;
+
+        void run(sampler2D code) {
+            pcoutput.code = 0.0;
+            float memory[100];
+            Registers regs;
+            regs.pos = 0;
+            regs.esp = 100;
+            int width = int(getCardData(code, regs.pos, 100, 100));
+            int height = int(getCardData(code, regs.pos, width, 100));
+
+
         }
 
         void main() {
-            gl_FragColor = run(code);
+            run(code);
+            gl_FragColor = vec4(pcoutput.data[0], pcoutput.data[1], pcoutput.data[2], pcoutput.data[3]);
         }
           
     </script>

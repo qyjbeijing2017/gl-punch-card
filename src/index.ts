@@ -76,11 +76,12 @@ function main() {
         farPlane: 100,
     };
 
-    const buffer1 = Buffer.alloc(16);
+    const buffer1 = Buffer.alloc(4 ** 2 * 4);
     buffer1.writeFloatLE(2);
-    buffer1.writeFloatLE(2, 4);
-    buffer1.writeFloatLE(2, 8);
-    buffer1.writeFloatLE(3, 12);
+    buffer1.writeFloatLE(2, 1 * 4);
+    buffer1.writeFloatLE(2, 2 * 4);
+    buffer1.writeFloatLE(3, 3 * 4);
+    buffer1.writeFloatLE(0, 4 * 4);
 
     const tex = twgl.createTexture(gl, {
         src: buffer1,
