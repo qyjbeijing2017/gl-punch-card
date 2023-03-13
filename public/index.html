@@ -10,25 +10,12 @@
 
 <body>
     <script id="vs" type="x-shader/x-vertex">
-
-        uniform mat4 modelMatrix;
-        uniform mat4 viewMatrix;
-        uniform mat4 projectionMatrix;
-        uniform mat4 modelViewProjectionMatrix;
-
         attribute vec4 position;
         attribute vec3 normal;
         attribute vec2 texcoord;
 
-        varying vec3 vNormal;
-        varying vec3 vFragPosition;
-        varying vec2 vTexcoord;
-        
         void main() {
-          vNormal = mat3(modelMatrix) * normal;
-          vFragPosition = vec3(modelMatrix * position);
-          vTexcoord = texcoord;
-          gl_Position =  modelViewProjectionMatrix * position;
+          gl_Position =  position;
         }
           
     </script>
@@ -36,16 +23,11 @@
 
         #define PI 3.1415926535897932384626433832795
         #define MAX_MARCHING_STEPS 100
+        #define MAX_INSTRUCTIONS 1000
 
         #ifdef GL_ES
-        // precision highp float;
         precision mediump float;
         #endif
-
-        uniform sampler2D code;
-        varying vec3 vNormal;
-        varying vec3 vFragPosition;
-        varying vec2 vTexcoord;
 
         float pixel2float(vec4 pixel) {
             float rByte = pixel.r * 255.0;
@@ -61,19 +43,37 @@
             return f;
         }
 
-        float getCardData(sampler2D code, inout int pos, int width, int height) {
-            int y = pos / width;
-            int x = pos - y * width;
-            vec2 uv = vec2(float(x)/ float(width), float(y) / float(height));
+        float getCardFloat(sampler2D code, inout float pos, float width, float height) {
+            float y = pos / width;
+            float x = pos - y * width;
+            vec2 uv = vec2(x / width, y / height);
             vec4 pixel = texture2D(code, uv);
             pos++;
             return pixel2float(pixel);
         }
 
+        float getCardVector(sampler2D code, inout float pos, float width, float height) {
+            vec3 v;
+            v.x = getCardFloat(code, pos, width, height);
+            v.y = getCardFloat(code, pos, width, height);
+            v.z = getCardFloat(code, pos, width, height);
+            return v;
+        }
+        
+        mat4 getCardMatrix(sampler2D code, inout float pos, float width, float height) {
+            mat4 m;
+            m[0] = getCardVector(code, pos, width, height);
+            m[1] = getCardVector(code, pos, width, height);
+            m[2] = getCardVector(code, pos, width, height);
+            m[3] = getCardVector(code, pos, width, height);
+            return m;
+        }
+
         struct Registers{
-            mat4  r[10];    // 0
-            int   pos;      // 1000
-            int   esp;      // 1001
+            float   memory[100];
+            mat4    r[2];           // 0
+            float   pos;            // 1000
+            float   esp;            // 1001
         };
 
         struct PCInput{
@@ -83,27 +83,63 @@
 
         struct PCOutput{
             float data[100];
-            float code;
         };
 
-        uniform PCInput pcinput;
-        PCOutput pcoutput;
+        uniform PCInput pc_input;
+        uniform sampler2D pc_code;
+        PCOutput pc_output;
 
         void run(sampler2D code) {
-            pcoutput.code = 0.0;
-            float memory[100];
+            pc_output.code = 0.0;
             Registers regs;
-            regs.pos = 0;
-            regs.esp = 100;
-            int width = int(getCardData(code, regs.pos, 100, 100));
-            int height = int(getCardData(code, regs.pos, width, 100));
+            regs.pos = 0.0;
+            regs.esp = 100.0;
+            float width = getCardFloat(code, regs.pos, 100.0, 100.0);
+            float height = getCardFloat(code, regs.pos, width, 100.0);
 
+            float op = getCardFloat(code, regs.pos, width, height);
+            for(int i = 0; i < MAX_INSTRUCTIONS; i++) {
+                if(op == 0.0) { // exit
+                    break;                      
+                }
 
+                if(abs(op) == 1.0) { // mov
+                    float movDest = getCardFloat(code, regs.pos, width, height);
+                    if(movDest >= 1000) { // other register
+                        if(movDest == 1000) {
+                            if(op > 0) { // from register or memory
+                                int b = int(getCardFloat(code, regs.pos, width, height));
+                                if(b >= 0) { // from float register
+                                    int matIndex = b / 16;
+                                    int vecIndex = b / 4;
+                                    int floatIndex = b;
+                                    regs.pos = regs.r[matIndex][vecIndex][floatIndex];
+                                }else { // from memory
+                                    regs.pos = regs.memory[-b];
+                                }
+                            } else { // from constant
+                                float b = getCardFloat(code, regs.pos, width, height);
+                                regs.pos = b;
+                            }
+                        }else if(movDest == 1001) {
+                        }
+                    }else if(movDest >= 100) { // matrix register
+
+                    }else if(movDest >= 10) { // vector register
+
+                    }else if(movDest >= 0) { // float register
+
+                    }else { // memory
+
+                    }
+                }
+                op = getCardFloat(code, regs.pos, width, height);
+            }
         }
 
         void main() {
-            run(code);
-            gl_FragColor = vec4(pcoutput.data[0], pcoutput.data[1], pcoutput.data[2], pcoutput.data[3]);
+            run(pc_code);
+            gl_FragColor = vec4(pc_output.data[0], pc_output.data[1], pc_output.data[2], pc_output.data[3]);
         }
           
     </script>

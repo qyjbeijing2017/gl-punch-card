@@ -12,10 +12,6 @@ const config: Configuration = {
     },
     resolve: {
         extensions: ['.ts', '.js'],
-        fallback: {
-            // "stream": require.resolve("stream-browserify"),
-            // "buffer": require.resolve("buffer"),
-        },
     },
     module: {
         rules: [
@@ -37,12 +33,6 @@ const config: Configuration = {
         new HtmlWebpackPlugin({
             template: './public/index.html',
         }),
-        // new ProvidePlugin({
-        //     Buffer: ['buffer', 'Buffer'],
-        // }),
-        // new ProvidePlugin({
-        //     process: 'process/browser',
-        // }),
     ],
     devtool: 'inline-source-map',
     devServer: {
