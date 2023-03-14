@@ -21,15 +21,36 @@
     </script>
     <script id="fs" type="x-shader/x-fragment">
 
-        #define PI 3.1415926535897932384626433832795
-        #define MAX_MARCHING_STEPS 100
-        #define MAX_INSTRUCTIONS 1000
+        #define PC_MAX_INSTRUCTIONS 1000
+        #define PC_MAX_IN 10
+        #define PC_MAX_TEXTURES 2
+        #define PC_MAX_OUT 10
+        #define PC_MAX_MEMORY 100
+        #define PC_MAX_MATRIX_REGISTERS 2
 
         #ifdef GL_ES
         precision mediump float;
         #endif
 
-        float pixel2float(vec4 pixel) {
+        struct PCInput{
+            float argf[PC_MAX_IN];
+            sampler2D argt[PC_MAX_TEXTURES];
+        } pc_input;
+
+        struct PCOutput{
+            float data[PC_MAX_OUT];
+        } pc_output;
+
+        struct PCStorage{
+            float   memory[PC_MAX_MEMORY];
+            mat4    r[PC_MAX_MATRIX_REGISTERS];           // 0
+            float   pos;                                  // 1000
+            float   esp;                                  // 1001
+            float   card_width;
+            float   card_height;
+        } pc_storage;
+
+        float pc_Pixel2float(vec4 pixel) {
             float rByte = pixel.r * 255.0;
             float gByte = pixel.g * 255.0;
             float bByte = pixel.b * 255.0;
@@ -43,100 +64,329 @@
             return f;
         }
 
-        float getCardFloat(sampler2D code, inout float pos, float width, float height) {
-            float y = pos / width;
-            float x = pos - y * width;
-            vec2 uv = vec2(x / width, y / height);
+        float pc_GetCardFloat(sampler2D code) {
+            float y = float(int(pos / pc_storage.card_width));
+            float x = pos - y * pc_storage.card_width;
+            vec2 uv = vec2(x / pc_storage.card_width, y / pc_storage.card_height);
             vec4 pixel = texture2D(code, uv);
-            pos++;
-            return pixel2float(pixel);
+            pc_storage.pos++;
+            return pc_Pixel2float(pixel);
         }
 
-        float getCardVector(sampler2D code, inout float pos, float width, float height) {
+        float pc_GetCardVector(sampler2D code) {
             vec3 v;
-            v.x = getCardFloat(code, pos, width, height);
-            v.y = getCardFloat(code, pos, width, height);
-            v.z = getCardFloat(code, pos, width, height);
+            v.x = pc_GetCardFloat(code);
+            v.y = pc_GetCardFloat(code);
+            v.z = pc_GetCardFloat(code);
             return v;
         }
         
-        mat4 getCardMatrix(sampler2D code, inout float pos, float width, float height) {
+        mat4 pc_GetCardMatrix(sampler2D code) {
             mat4 m;
-            m[0] = getCardVector(code, pos, width, height);
-            m[1] = getCardVector(code, pos, width, height);
-            m[2] = getCardVector(code, pos, width, height);
-            m[3] = getCardVector(code, pos, width, height);
+            m[0] = pc_GetCardVector(code);
+            m[1] = pc_GetCardVector(code);
+            m[2] = pc_GetCardVector(code);
+            m[3] = pc_GetCardVector(code);
             return m;
         }
 
-        struct Registers{
-            float   memory[100];
-            mat4    r[2];           // 0
-            float   pos;            // 1000
-            float   esp;            // 1001
+        struct PCStoragePos{
+            // -1 memory 0 float 1 vec3 2 mat4
+            float type;
+            int indexMat;
+            int indexVec;
+            int indexFloat;
+            int indexMemory;
         };
 
-        struct PCInput{
-            float argf[100];
-            sampler2D argt[10];
-        };
+        PCStoragePos pc_GetCardStoragePos(sampler2D code) {
+            float Operand = getCardFloat(code);
+            PCStoragePos sp;
+            sp.type = (step(0.0, Operand) * 2.0 - 1.0) * (step(10.0, Operand) + step(100.0, Operand));
+            int index = int(Operand - step(10.0, Operand) * 10.0 - step(100.0, Operand) * 100.0);
+            sp.indexMat = index / 16;
+            sp.indexVec = (index - sp.indexMat * 16) / 4;
+            sp.indexFloat = index - sp.indexMat * 16 - sp.indexVec * 4;
+            sp.indexMemory = int(-Operand);
+        }
 
-        struct PCOutput{
-            float data[100];
-        };
-
-        uniform PCInput pc_input;
-        uniform sampler2D pc_code;
-        PCOutput pc_output;
-
-        void run(sampler2D code) {
-            pc_output.code = 0.0;
-            Registers regs;
-            regs.pos = 0.0;
-            regs.esp = 100.0;
-            float width = getCardFloat(code, regs.pos, 100.0, 100.0);
-            float height = getCardFloat(code, regs.pos, width, 100.0);
-
-            float op = getCardFloat(code, regs.pos, width, height);
-            for(int i = 0; i < MAX_INSTRUCTIONS; i++) {
-                if(op == 0.0) { // exit
-                    break;                      
-                }
-
-                if(abs(op) == 1.0) { // mov
-                    float movDest = getCardFloat(code, regs.pos, width, height);
-                    if(movDest >= 1000) { // other register
-                        if(movDest == 1000) {
-                            if(op > 0) { // from register or memory
-                                int b = int(getCardFloat(code, regs.pos, width, height));
-                                if(b >= 0) { // from float register
-                                    int matIndex = b / 16;
-                                    int vecIndex = b / 4;
-                                    int floatIndex = b;
-                                    regs.pos = regs.r[matIndex][vecIndex][floatIndex];
-                                }else { // from memory
-                                    regs.pos = regs.memory[-b];
-                                }
-                            } else { // from constant
-                                float b = getCardFloat(code, regs.pos, width, height);
-                                regs.pos = b;
-                            }
-                        }else if(movDest == 1001) {
-                        }
-                    }else if(movDest >= 100) { // matrix register
-
-                    }else if(movDest >= 10) { // vector register
-
-                    }else if(movDest >= 0) { // float register
-
-                    }else { // memory
-
-                    }
-                }
-                op = getCardFloat(code, regs.pos, width, height);
+        mat4 pc_GetMatrix(PCStoragePos sp) {
+            if(sp.type < 0.0) {
+                mat4 m;
+                m[0][0] = pc_storage.memory[sp.indexMemory];
+                m[0][1] = pc_storage.memory[sp.indexMemory + 1];
+                m[0][2] = pc_storage.memory[sp.indexMemory + 2];
+                m[0][3] = pc_storage.memory[sp.indexMemory + 3];
+                m[1][0] = pc_storage.memory[sp.indexMemory + 4];
+                m[1][1] = pc_storage.memory[sp.indexMemory + 5];
+                m[1][2] = pc_storage.memory[sp.indexMemory + 6];
+                m[1][3] = pc_storage.memory[sp.indexMemory + 7];
+                m[2][0] = pc_storage.memory[sp.indexMemory + 8];
+                m[2][1] = pc_storage.memory[sp.indexMemory + 9];
+                m[2][2] = pc_storage.memory[sp.indexMemory + 10];
+                m[2][3] = pc_storage.memory[sp.indexMemory + 11];
+                m[3][0] = pc_storage.memory[sp.indexMemory + 12];
+                m[3][1] = pc_storage.memory[sp.indexMemory + 13];
+                m[3][2] = pc_storage.memory[sp.indexMemory + 14];
+                m[3][3] = pc_storage.memory[sp.indexMemory + 15];
+                return m;
+            } else {
+                return pc_storage.r[sp.indexMat];
             }
         }
 
+        void pc_SetMatrix(PCStoragePos sp, mat4 m) {
+            if(sp.type < 0.0) {
+                pc_storage.memory[sp.indexMemory] = m[0][0];
+                pc_storage.memory[sp.indexMemory + 1] = m[0][1];
+                pc_storage.memory[sp.indexMemory + 2] = m[0][2];
+                pc_storage.memory[sp.indexMemory + 3] = m[0][3];
+                pc_storage.memory[sp.indexMemory + 4] = m[1][0];
+                pc_storage.memory[sp.indexMemory + 5] = m[1][1];
+                pc_storage.memory[sp.indexMemory + 6] = m[1][2];
+                pc_storage.memory[sp.indexMemory + 7] = m[1][3];
+                pc_storage.memory[sp.indexMemory + 8] = m[2][0];
+                pc_storage.memory[sp.indexMemory + 9] = m[2][1];
+                pc_storage.memory[sp.indexMemory + 10] = m[2][2];
+                pc_storage.memory[sp.indexMemory + 11] = m[2][3];
+                pc_storage.memory[sp.indexMemory + 12] = m[3][0];
+                pc_storage.memory[sp.indexMemory + 13] = m[3][1];
+                pc_storage.memory[sp.indexMemory + 14] = m[3][2];
+                pc_storage.memory[sp.indexMemory + 15] = m[3][3];
+            } else {
+                pc_storage.r[sp.indexMat] = m;
+            }
+        }
+
+        vec3 pc_GetVector(PCStoragePos sp) {
+            if(sp.type < 0.0) {
+                vec3 v;
+                v.x = pc_storage.memory[sp.indexMemory];
+                v.y = pc_storage.memory[sp.indexMemory + 1];
+                v.z = pc_storage.memory[sp.indexMemory + 2];
+                return v;
+            } else {
+                return pc_storage.r[sp.indexMat][sp.indexVec].xyz;
+            }
+        }
+
+        void pc_SetVector(PCStoragePos sp, vec3 v) {
+            if(sp.type < 0.0) {
+                pc_storage.memory[sp.indexMemory] = v.x;
+                pc_storage.memory[sp.indexMemory + 1] = v.y;
+                pc_storage.memory[sp.indexMemory + 2] = v.z;
+            } else {
+                pc_storage.r[sp.indexMat][sp.indexVec] = vec4(v, 0.0);
+            }
+        }
+
+        float pc_GetFloat(PCStoragePos sp) {
+            if(sp.type < 0.0) {
+                return pc_storage.memory[sp.indexMemory];
+            } else {
+                return pc_storage.r[sp.indexMat][sp.indexVec][sp.indexFloat];
+            }
+        }
+
+        void pc_SetFloat(PCStoragePos sp, float f) {
+            if(sp.type < 0.0) {
+                pc_storage.memory[sp.indexMemory] = f;
+            } else {
+                pc_storage.r[sp.indexMat][sp.indexVec][sp.indexFloat] = f;
+            }
+        }
+        
+        void pc_mov(op: float) {
+            PCStoragePos desPos = pc_GetCardStoragePos();
+            if(op > 0) {
+                PCStoragePos srcPos = pc_GetCardStoragePos();
+                float type = desPos.type > 0.0 ? desPos.type : srcPos.type;
+                if(type == 0.0) {
+                    pc_SetMatrix(desPos, pc_GetMatrix(srcPos));
+                } else if(type == 1.0) {
+                    pc_SetVector(desPos, pc_GetVector(srcPos));
+                } else if(type == 2.0) {
+                    pc_SetFloat(desPos, pc_GetFloat(srcPos));
+                }
+            } else {
+                float type = desPos.type;
+                if(type == 0.0) {
+                    pc_SetMatrix(desPos, pc_GetCardMatrix());
+                } else if(type == 1.0) {
+                    pc_SetVector(desPos, pc_GetCardVector());
+                } else if(type == 2.0) {
+                    pc_SetFloat(desPos, pc_GetCardFloat());
+                }
+            }
+        }
+
+        void pc_push() {
+            PCStoragePos srcPos = pc_GetCardStoragePos();
+            if(srcPos.type === 0.0) {
+                mat4 m = pc_GetMatrix(srcPos);
+                pc_storage.memory[pc_storage.esp] = m[0][0];
+                pc_storage.memory[pc_storage.esp - 1] = m[0][1];
+                pc_storage.memory[pc_storage.esp - 2] = m[0][2];
+                pc_storage.memory[pc_storage.esp - 3] = m[0][3];
+                pc_storage.memory[pc_storage.esp - 4] = m[1][0];
+                pc_storage.memory[pc_storage.esp - 5] = m[1][1];
+                pc_storage.memory[pc_storage.esp - 6] = m[1][2];
+                pc_storage.memory[pc_storage.esp - 7] = m[1][3];
+                pc_storage.memory[pc_storage.esp - 8] = m[2][0];
+                pc_storage.memory[pc_storage.esp - 9] = m[2][1];
+                pc_storage.memory[pc_storage.esp - 10] = m[2][2];
+                pc_storage.memory[pc_storage.esp - 11] = m[2][3];
+                pc_storage.memory[pc_storage.esp - 12] = m[3][0];
+                pc_storage.memory[pc_storage.esp - 13] = m[3][1];
+                pc_storage.memory[pc_storage.esp - 14] = m[3][2];
+                pc_storage.memory[pc_storage.esp - 15] = m[3][3];
+                pc_storage.esp -= 16;
+            } else if(srcPos.type === 1.0) {
+                vec4 v = pc_GetVector(srcPos);
+                pc_storage.memory[pc_storage.esp] = v.x;
+                pc_storage.memory[pc_storage.esp - 1] = v.y;
+                pc_storage.memory[pc_storage.esp - 2] = v.z;
+                pc_storage.memory[pc_storage.esp - 3] = v.w;
+                pc_storage.esp -= 4.0;
+            } else if(srcPos.type === 2.0) {
+                pc_storage.memory[pc_storage.esp] = pc_GetFloat(srcPos);
+                pc_storage.esp -= 1.0;
+            }
+        }
+
+        void pc_pop() {
+            PCStoragePos desPos = pc_GetCardStoragePos();
+            if(desPos.type === 0.0) {
+                mat4 m;
+                m[0][0] = pc_storage.memory[pc_storage.esp];
+                m[0][1] = pc_storage.memory[pc_storage.esp + 1];
+                m[0][2] = pc_storage.memory[pc_storage.esp + 2];
+                m[0][3] = pc_storage.memory[pc_storage.esp + 3];
+                m[1][0] = pc_storage.memory[pc_storage.esp + 4];
+                m[1][1] = pc_storage.memory[pc_storage.esp + 5];
+                m[1][2] = pc_storage.memory[pc_storage.esp + 6];
+                m[1][3] = pc_storage.memory[pc_storage.esp + 7];
+                m[2][0] = pc_storage.memory[pc_storage.esp + 8];
+                m[2][1] = pc_storage.memory[pc_storage.esp + 9];
+                m[2][2] = pc_storage.memory[pc_storage.esp + 10];
+                m[2][3] = pc_storage.memory[pc_storage.esp + 11];
+                m[3][0] = pc_storage.memory[pc_storage.esp + 12];
+                m[3][1] = pc_storage.memory[pc_storage.esp + 13];
+                m[3][2] = pc_storage.memory[pc_storage.esp + 14];
+                m[3][3] = pc_storage.memory[pc_storage.esp + 15];
+                pc_SetMatrix(desPos, m);
+                pc_storage.esp += 16.0;
+            } else if(desPos.type === 1.0) {
+                vec4 v;
+                v.x = pc_storage.memory[pc_storage.esp];
+                v.y = pc_storage.memory[pc_storage.esp + 1];
+                v.z = pc_storage.memory[pc_storage.esp + 2];
+                v.w = pc_storage.memory[pc_storage.esp + 3];
+                pc_SetVector(desPos, v.xyz);
+                pc_storage.esp += 4.0;
+            } else if(desPos.type === 2.0) {
+                pc_SetFloat(desPos, pc_storage.memory[pc_storage.esp]);
+                pc_storage.esp += 1.0;
+            }
+        }
+
+        void pc_in(float op) {
+            PCStoragePos desPos = pc_GetCardStoragePos();
+            float offset = op < 0.0 ? pc_GetCardFloat() : pc_GetFloat(pc_GetCardStoragePos());
+            if(desPos.type === 0.0) {
+                mat4 m;
+                m[0][0] = pc_input.argf[offset];
+                m[0][1] = pc_input.argf[offset + 1];
+                m[0][2] = pc_input.argf[offset + 2];
+                m[0][3] = pc_input.argf[offset + 3];
+                m[1][0] = pc_input.argf[offset + 4];
+                m[1][1] = pc_input.argf[offset + 5];
+                m[1][2] = pc_input.argf[offset + 6];
+                m[1][3] = pc_input.argf[offset + 7];
+                m[2][0] = pc_input.argf[offset + 8];
+                m[2][1] = pc_input.argf[offset + 9];
+                m[2][2] = pc_input.argf[offset + 10];
+                m[2][3] = pc_input.argf[offset + 11];
+                m[3][0] = pc_input.argf[offset + 12];
+                m[3][1] = pc_input.argf[offset + 13];
+                m[3][2] = pc_input.argf[offset + 14];
+                m[3][3] = pc_input.argf[offset + 15];
+                pc_SetMatrix(desPos, m);
+            } else if(desPos.type === 1.0) {
+                vec4 v;
+                v.x = pc_input.argf[offset];
+                v.y = pc_input.argf[offset + 1];
+                v.z = pc_input.argf[offset + 2];
+                v.w = pc_input.argf[offset + 3];
+                pc_SetVector(desPos, v.xyz);
+            } else if(desPos.type === 2.0) {
+                pc_SetFloat(desPos, pc_input.argf[offset]);
+            }
+        }
+
+        void pc_out(float op) {
+            PCStoragePos desPos = pc_GetCardStoragePos();
+            float offset = op < 0.0 ? pc_GetCardFloat() : pc_GetFloat(pc_GetCardStoragePos());
+            if(desPos.type === 0.0) {
+                mat4 m = pc_GetMatrix(desPos);
+                pc_output.argf[offset] = m[0][0];
+                pc_output.argf[offset + 1] = m[0][1];
+                pc_output.argf[offset + 2] = m[0][2];
+                pc_output.argf[offset + 3] = m[0][3];
+                pc_output.argf[offset + 4] = m[1][0];
+                pc_output.argf[offset + 5] = m[1][1];
+                pc_output.argf[offset + 6] = m[1][2];
+                pc_output.argf[offset + 7] = m[1][3];
+                pc_output.argf[offset + 8] = m[2][0];
+                pc_output.argf[offset + 9] = m[2][1];
+                pc_output.argf[offset + 10] = m[2][2];
+                pc_output.argf[offset + 11] = m[2][3];
+                pc_output.argf[offset + 12] = m[3][0];
+                pc_output.argf[offset + 13] = m[3][1];
+                pc_output.argf[offset + 14] = m[3][2];
+                pc_output.argf[offset + 15] = m[3][3];
+            } else if(desPos.type === 1.0) {
+                vec4 v = pc_GetVector(desPos);
+                pc_output.argf[offset] = v.x;
+                pc_output.argf[offset + 1] = v.y;
+                pc_output.argf[offset + 2] = v.z;
+                pc_output.argf[offset + 3] = v.w;
+            } else if(desPos.type === 2.0) {
+                pc_output.argf[offset] = pc_GetFloat(desPos);
+            }
+        }
+
+        void run(sampler2D code) {
+            pc_storage.pos = 0.0;
+            pc_storage.esp = float(PC_MAX_MEMORY);
+            pc_storage.card_width = 100.0;
+            pc_storage.card_height = 100.0;
+            pc_storage.card_width = getCardFloat(code, pc_storage.pos, 100.0, 100.0);
+            pc_storage.card_height = getCardFloat(code, pc_storage.pos, width, 100.0);
+
+            float op = getCardFloat(code);
+            for(int i = 0; i < MAX_INSTRUCTIONS; i++) {
+                if(op == 0.0) {
+                    break;
+                }
+                float opabs = abs(op);
+                if(opabs == 1.0) {
+                    pc_mov(op);
+                } else if(opabs == 2.0) {
+                    pc_push();
+                } else if(opabs == 3.0) {
+                    pc_pop();
+                } else if(opabs == 4.0) {
+                    pc_in(op);
+                } else if(opabs == 5.0) {
+                    pc_out(op);
+                }
+                op = getCardFloat(code);
+            }
+        }
+
+
+        uniform sampler2D pc_code;
         void main() {
             run(pc_code);
             gl_FragColor = vec4(pc_output.data[0], pc_output.data[1], pc_output.data[2], pc_output.data[3]);

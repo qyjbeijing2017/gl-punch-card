@@ -42,14 +42,14 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 
 以下为当前`gl-punch-card`所有的指令:
 
-| Opcode | Assembled | Operand1   | Operand2 | Description         |
-| ------ | --------- | ---------- | -------- | ------------------- |
-| 0      | exit      |            |          | exit the program    |
-| 1      | mov       | 寄存器位置 | 任意值   | Operand1 = Operand2 |
-| 2      | push      | 寄存器位置 |          | register -> memory  |
-| 3      | pop       | 寄存器位置 |          | memory -> register  |
-| 4      | in        | 寄存器位置 | 偏移量   | input->register     |
-| 5      | out       | 寄存器位置 | 偏移量   | register->out       |
+| Opcode | Assembled | Operand1           | Operand2              | Description               |
+| ------ | --------- | ------------------ | --------------------- | ------------------------- |
+| 0      | exit      |                    |                       | exit the program          |
+| 1      | mov       | 内存或者寄存器位置 | 任意值                | Operand1 = Operand2       |
+| 2      | push      | 寄存器位置         |                       | register -> memory        |
+| 3      | pop       | 寄存器位置         |                       | memory -> register        |
+| 4      | in        | 寄存器位置         | float寄存器或者立即数 | input[Operand2]->register |
+| 5      | out       | 寄存器位置         | float寄存器或者立即数 | register->out[Operand2]   |
 
 > 注意：在操作数（Operand）中必须有一个参数是寄存器位置否则无法判断参数类型
 
@@ -64,16 +64,16 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 * Typecode，类型码，代表了寄存器的类型信息，它是一个预设值，比如mat的类型数为100，当寄存器的操作码大于这个数时则代表操作当前类型的寄存器。操作码从大到小进行匹配。
 * Index，寄存器编号，代表了寄存器编号，它由操作数减去类型数得到`index = Operand - Typecode`；
 
-> 例如：从punch-card读取到一个寄存器操作数103。首先它大于100，是一个mat寄存器。它的位置为3=103-100。那么它代表的是第4个数组通用寄存器（寄存器位置从0开始）。
+> 例如：从punch-card读取到一个寄存器操作数103。首先它大于100，是一个float寄存器。它的位置为3=103-100。那么它代表的是第4个数组通用寄存器（寄存器位置从0开始）。
 
 
 
 `gl-punch-card`包含以下几个寄存器：
 
 * 类型码0~999：通用寄存器，用于存放数据
-  * mat，类型码100；
+  * mat，类型码0；
   * vector，类型码10；
-  * float，类型码0；
+  * float，类型码100；
 * 类型码1000~1010：特殊寄存器，用于部分特殊目的
   * pos，操作数1001，用于表示下一个指令的像素位置；
 
