@@ -47,7 +47,7 @@ const create = (width: number, height: number) => {
 export const createCard= ()=>{
     const card: ICard = create(4, 4);
     // punch card code
-    movConst(card, 11, [1, 0, 0, 1]);
+    movConst(card, 10, [1, 0, 0, 1]);
     movConst(card, 14, [0, 1, 0, 1]);
     add(card);
     return card;

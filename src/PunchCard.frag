@@ -203,6 +203,69 @@ void pc_Sub() {
     pc_storage.r[0] -= pc_storage.r[1];
 }
 
+void pc_MulMM() {
+    pc_storage.r[0] *= pc_storage.r[1];
+}
+
+void pc_MulMV() {
+    pc_storage.r[0][1] = pc_storage.r[0] * pc_storage.r[1][0];
+}
+
+void pc_MulVM() {
+    pc_storage.r[0][1] = pc_storage.r[0][0] * pc_storage.r[1];
+}
+
+void pc_MulVV() {
+    pc_storage.r[0][1] = pc_storage.r[0][0] * pc_storage.r[1][0];
+}
+
+void pc_MulMF() {
+    pc_storage.r[0] *= pc_storage.r[1][0][0];
+}
+
+void pc_MulVF() {
+    pc_storage.r[0][1] = pc_storage.r[0][0] * pc_storage.r[1][0][0];
+}
+
+void pc_MulFF() {
+    pc_storage.r[0][1][1] = pc_storage.r[0][0][0] * pc_storage.r[1][0][0];
+}
+
+void pc_Div() {
+    pc_storage.r[0] /= pc_storage.r[1];
+}
+
+void pc_Dot() {
+    pc_storage.r[0][1][1] = dot(pc_storage.r[0][0], pc_storage.r[1][0]);
+}
+
+void pc_Dot3() {
+    pc_storage.r[0][1][1] = dot(pc_storage.r[0][0].xyz, pc_storage.r[1][0].xyz);
+}
+
+void pc_Dot2() {
+    pc_storage.r[0][1][1] = dot(pc_storage.r[0][0].xy, pc_storage.r[1][0].xy);
+}
+
+void pc_Crs() {
+    pc_storage.r[0][1].xyz = cross(pc_storage.r[0][0].xyz, pc_storage.r[1][0].xyz);
+}
+
+void pc_Nor() {
+    pc_storage.r[0][0] = normalize(pc_storage.r[0][0]);
+}
+
+void pc_Nor3() {
+    pc_storage.r[0][0].xyz = normalize(pc_storage.r[0][0].xyz);
+}
+
+void pc_Nor2() {
+    pc_storage.r[0][0].xy = normalize(pc_storage.r[0][0].xy);
+}
+
+
+
+
 void pc_init(sampler2D code) {
     pc_storage.pos = 0;
     pc_storage.card_width = 100;
@@ -228,6 +291,66 @@ void pc_loop(sampler2D code) {
         }
         if(opcode == 4.0) {
             pc_Sub();
+            continue;
+        }
+        if(opcode == 5.0) {
+            pc_MulMM();
+            continue;
+        }
+        if(opcode == 6.0) {
+            pc_MulMV();
+            continue;
+        }
+        if(opcode == 7.0) {
+            pc_MulVM();
+            continue;
+        }
+        if(opcode == 8.0) {
+            pc_MulVV();
+            continue;
+        }
+        if(opcode == 9.0) {
+            pc_MulMF();
+            continue;
+        }
+        if(opcode == 10.0) {
+            pc_MulVF();
+            continue;
+        }
+        if(opcode == 11.0) {
+            pc_MulFF();
+            continue;
+        }
+        if(opcode == 12.0) {
+            pc_Div();
+            continue;
+        }
+        if(opcode == 13.0) {
+            pc_Dot();
+            continue;
+        }
+        if(opcode == 14.0) {
+            pc_Dot3();
+            continue;
+        }
+        if(opcode == 15.0) {
+            pc_Dot2();
+            continue;
+        }
+        if(opcode == 16.0) {
+            pc_Crs();
+            continue;
+        }
+        if(opcode == 17.0) {
+            pc_Nor();
+            continue;
+        }
+        if(opcode == 18.0) {
+            pc_Nor3();
+            continue;
+        }
+        if(opcode == 19.0) {
+            pc_Nor2();
             continue;
         }
         break;

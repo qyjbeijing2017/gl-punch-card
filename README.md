@@ -42,11 +42,29 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 
 以下为当前`gl-punch-card`所有的指令:
 
-| Opcode | Assembled | Operand1       | Operand2             | Description                  |
-| ------ | --------- | -------------- | -------------------- | ---------------------------- |
-| 0      | exit      |                |                      | exit the program             |
-| 1      | mov       | 寄存位置       | 寄存器位置或者立即数 | Operand1 = Operand2          |
-| 2      | in        | 输入参数offset |                      | input[Operand1]->register[0] |
+| Opcode | Assembled | Operand1       | Operand2             | Description                                                  |
+| ------ | --------- | -------------- | -------------------- | ------------------------------------------------------------ |
+| 0      | exit      |                |                      | exit the program                                             |
+| 1      | mov       | 寄存位置       | 寄存器位置或者立即数 | Operand1 = Operand2                                          |
+| 2      | in        | 输入参数offset |                      | input[Operand1]->register[0]                                 |
+| 3      | add       |                |                      | register[0] = register[0]-register[1]                        |
+| 4      | sub       |                |                      | register[0] = register[0]-register[1]                        |
+| 5      | mulMM     |                |                      | register[0] = register[0]*register[1]                        |
+| 6      | mulMV     |                |                      | register\[0][0] = register[0] * register\[1][0]              |
+| 7      | mulVM     |                |                      | register\[0][0] = register\[0][0] * register[1]              |
+| 8      | mulVV     |                |                      | register\[0][0] = register\[0][0] * register\[1][0]          |
+| 9      | mulMF     |                |                      | register\[0] = register\[0] * register\[1]\[0][0]            |
+| 10     | mulVF     |                |                      | register\[0][0] =  register\[0][0] * register\[1]\[0][0]     |
+| 11     | mulFF     |                |                      | register\[0]\[0][0] = register\[0]\[0][0] * register\[0]\[0][1] |
+| 12     | div       |                |                      | register[0] = register[0] / register[1]                      |
+| 13     | dot       |                |                      | register\[0]\[0][0] = dot(register\[0][0], register\[0][1])  |
+| 14     | dot3      |                |                      | register\[0]\[0][0] = dot(register\[0][0].xyz, register\[0][1].xyz) |
+| 15     | dot2      |                |                      | register\[0]\[0][0]  = dot(register\[0][0].xy, register\[0][1].xy) |
+| 16     | crs       |                |                      | register\[0][0] = vec4(cross(vec3(register\[0][0]), vec3(register\[0][1])), 0.0) |
+| 17     | nor       |                |                      | register\[0][0] = normalize(register\[0][0])                 |
+| 18     | nor3      |                |                      | register\[0][0] = normalize(register\[0][0].xyz)             |
+| 19     | nor2      |                |                      | register\[0][0] = normalize(register\[0][0].xy)              |
+| 20     | sin       |                |                      | register\[0]\[0][0]                                          |
 
 > 注意：在操作数（Operand）中必须有一个参数是寄存器位置否则无法判断参数类型
 
