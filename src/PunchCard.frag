@@ -240,44 +240,12 @@ void pc_In(sampler2D code) {
     }
 }
 
-void pc_Add(sampler2D code, float op) {
-    PCStoragePos sp = pc_GetCardStoragePos(code);
-    if(op > 0.0) {
-        PCStoragePos sp2 = pc_GetCardStoragePos(code);
-        if(sp.type == 2){
-            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp) + pc_GetFloatFromStorage(sp2));
-        } else if(sp.type == 1) {
-            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp) + pc_GetVectorFromStorage(sp2));
-        } else if(sp.type == 0) {
-            pc_SetMatrixToStorage(sp, pc_GetMatrixFromStorage(sp) + pc_GetMatrixFromStorage(sp2));
-        }
-    } else {
-        if(sp.type == 2){
-            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp) + pc_GetCardFloat(code));
-        } else if(sp.type == 1) {
-            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp) + pc_GetCardVector(code));
-        } else if(sp.type == 0) {
-            pc_SetMatrixToStorage(sp, pc_GetMatrixFromStorage(sp) + pc_GetCardMatrix(code));
-        }
-    }
+void pc_Add() {
+    pc_storage.r[0] += pc_storage.r[1];
 }
 
-void pc_Sub(sampler2D code, float op) {
-    PCStoragePos sp = pc_GetCardStoragePos(code);
-    if(op > 0.0) {
-        PCStoragePos sp2 = pc_GetCardStoragePos(code);
-        if(sp.type == 2){
-            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp) - pc_GetFloatFromStorage(sp2));
-        } else if(sp.type == 1) {
-            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp) - pc_GetVectorFromStorage(sp2));
-        }
-    } else {
-        if(sp.type == 2){
-            pc_SetFloatToStorage(sp, -pc_GetFloatFromStorage(sp));
-        } else if(sp.type == 1) {
-            pc_SetVectorToStorage(sp, -pc_GetVectorFromStorage(sp));
-        }
-    }
+void pc_Sub() {
+    pc_storage.r[0] -= pc_storage.r[1];
 }
 
 void pc_init(sampler2D code) {
@@ -291,22 +259,20 @@ void pc_init(sampler2D code) {
 void pc_loop(sampler2D code) {
     for(int i = 0; i < PC_MAX_INSTRUCTIONS; i++) {
         float opcode = pc_GetCardFloat(code);
-        float absCode = abs(opcode);
-
-        if(absCode == 1.0) {
+        if(abs(opcode) == 1.0) {
             pc_Mov(code, opcode);
             continue;
         }
-        if(absCode == 2.0) {
+        if(opcode == 2.0) {
             pc_In(code);
             continue;
         }
-        if(absCode == 3.0) {
-            pc_Add(code, opcode);
+        if(opcode == 3.0) {
+            pc_Add();
             continue;
         }
-        if(absCode == 4.0) {
-            pc_Sub(code, opcode);
+        if(opcode == 4.0) {
+            pc_Sub();
             continue;
         }
         break;
