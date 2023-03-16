@@ -1,31 +1,23 @@
-#define PC_MAX_INSTRUCTIONS 1000
-#define PC_MAX_IN 10
-#define PC_MAX_TEXTURES 2
-#define PC_MAX_OUT 10
-#define PC_MAX_MEMORY 100
-#define PC_MAX_MATRIX_REGISTERS 2
+#define PC_MAX_INSTRUCTIONS 100
+#define PC_MAX_MATRIX_IN 4
+#define PC_MAX_TEXTURES_IN 2
+#define PC_MATRIX_REGISTER_COUNT 2
 
 #ifdef GL_ES
 precision mediump float;
 #endif
 
-struct PCInput{
-    float argf[PC_MAX_IN];
-    sampler2D argt[PC_MAX_TEXTURES];
+struct PCInput {
+    mat4 argm[PC_MAX_MATRIX_IN];
+    sampler2D argt[PC_MAX_TEXTURES_IN];
 };
 uniform PCInput pc_input;
 
-struct PCOutput{
-    float data[PC_MAX_OUT];
-} pc_output;
-
-struct PCStorage{
-    float   memory[PC_MAX_MEMORY];
-    mat4    r[PC_MAX_MATRIX_REGISTERS];           // 0
-    int   pos;                                  // 1000
-    int   esp;                                  // 1001
-    int   card_width;
-    int   card_height;
+struct PCStorage {
+    mat4 r[PC_MATRIX_REGISTER_COUNT];
+    int pos;
+    int card_width;
+    int card_height;
 } pc_storage;
 
 float pc_Pixel2float(vec4 pixel) {
@@ -35,8 +27,8 @@ float pc_Pixel2float(vec4 pixel) {
     float aByte = pixel.a * 255.0;
     float s = -step(127.0, aByte);
     float eLastBit = step(127.0, bByte);
-    float e = (aByte + s * 128.0) * 2.0 + eLastBit;
-    float m = (bByte - eLastBit * 128.0) * 65536.0 + gByte * 256.0 + rByte;
+    float e = float(int(aByte + s * 128.0)) * 2.0 + eLastBit;
+    float m = float(int(bByte - eLastBit * 128.0)) * 65536.0 + gByte * 256.0 + rByte;
     float f = (s * 2.0 + 1.0) * (1.0 + m / 8388608.0) * pow(2.0, e - 127.0);
     return f;
 }
@@ -68,13 +60,197 @@ mat4 pc_GetCardMatrix(sampler2D code) {
     return m;
 }
 
+struct PCStoragePos {
+    // -1 memory 0 float 1 vec3 2 mat4
+    int type;
+    int indexMat;
+    int indexVec;
+    int indexFloat;
+};
 
-uniform sampler2D pc_code;
+PCStoragePos pc_GetCardStoragePos(sampler2D code) {
+    float Operand = pc_GetCardFloat(code);
+    PCStoragePos sp;
+    sp.type = int(step(10.0, Operand) + step(100.0, Operand));
+    int index = int(Operand - step(10.0, Operand) * 10.0 - step(100.0, Operand) * 100.0);
+    sp.indexMat = index / 16;
+    sp.indexVec = (index - sp.indexMat * 16) / 4;
+    sp.indexFloat = index - sp.indexMat * 16 - sp.indexVec * 4;
+    return sp;
+}
 
-void run(sampler2D code) {
+mat4 pc_GetMatrixFromInput(PCStoragePos sp) {
+    mat4 m;
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            m = pc_input.argm[i];
+        }
+    }
+    return m;
+}
+
+vec4 pc_GetVectorFromInput(PCStoragePos sp) {
+    vec4 v;
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            for(int j = 0; j < 4; j++) {
+                if(sp.indexVec == j) {
+                    v = pc_input.argm[i][j];
+                }
+            }
+        }
+    }
+    return v;
+}
+
+float pc_GetFloatFromInput(PCStoragePos sp) {
+    float f;
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            for(int j = 0; j < 4; j++) {
+                if(sp.indexVec == j) {
+                    for(int k = 0; k < 4; k++) {
+                        if(sp.indexFloat == k) {
+                            f = pc_input.argm[i][j][k];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return f;
+}
+
+mat4 pc_GetMatrixFromStorage(PCStoragePos sp) {
+    mat4 m;
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            m = pc_storage.r[i];
+        }
+    }
+    return m;
+}
+
+vec4 pc_GetVectorFromStorage(PCStoragePos sp) {
+    vec4 v;
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            for(int j = 0; j < 4; j++) {
+                if(sp.indexVec == j) {
+                    v = pc_storage.r[i][j];
+                }
+            }
+        }
+    }
+    return v;
+}
+
+float pc_GetFloatFromStorage(PCStoragePos sp) {
+    float f;
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            for(int j = 0; j < 4; j++) {
+                if(sp.indexVec == j) {
+                    for(int k = 0; k < 4; k++) {
+                        if(sp.indexFloat == k) {
+                            f = pc_storage.r[i][j][k];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return f;
+}
+
+void pc_SetMatrixToStorage(PCStoragePos sp, mat4 m) {
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            pc_storage.r[i] = m;
+        }
+    }
+}
+
+void pc_SetVectorToStorage(PCStoragePos sp, vec4 v) {
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            for(int j = 0; j < 4; j++) {
+                if(sp.indexVec == j) {
+                    pc_storage.r[i][j] = v;
+                }
+            }
+        }
+    }
+}
+
+void pc_SetFloatToStorage(PCStoragePos sp, float f) {
+    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
+        if(sp.indexMat == i) {
+            for(int j = 0; j < 4; j++) {
+                if(sp.indexVec == j) {
+                    for(int k = 0; k < 4; k++) {
+                        if(sp.indexFloat == k) {
+                            pc_storage.r[i][j][k] = f;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void pc_Mov(sampler2D code, float op) {
+    PCStoragePos sp = pc_GetCardStoragePos(code);
+    if(op < 0.0) {
+        if(sp.type == 0) {
+            pc_SetMatrixToStorage(sp, pc_GetCardMatrix(code));
+        } else if(sp.type == 1) {
+            pc_SetVectorToStorage(sp, pc_GetCardVector(code));
+        } else if(sp.type == 2) {
+            pc_SetFloatToStorage(sp, pc_GetCardFloat(code));
+        }
+    } else {
+        PCStoragePos sp2 = pc_GetCardStoragePos(code);
+        if(sp.type == 0) {
+            pc_SetMatrixToStorage(sp, pc_GetMatrixFromStorage(sp2));
+        } else if(sp.type == 1) {
+            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp2));
+        } else if(sp.type == 2) {
+            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp2));
+        }
+    }
+}
+
+void pc_init(sampler2D code) {
+    pc_storage.pos = 0;
+    pc_storage.card_width = 100;
+    pc_storage.card_height = 100;
+    pc_storage.card_width = int(pc_GetCardFloat(code));
+    pc_storage.card_height = int(pc_GetCardFloat(code));
+}
+
+void pc_loop(sampler2D code) {
+    for(int i = 0; i < PC_MAX_INSTRUCTIONS; i++) {
+        float opcode = pc_GetCardFloat(code);
+        float absCode = abs(opcode);
+
+        if(absCode == 1.0) {
+            pc_Mov(code, opcode);
+            continue;
+        }
+        break;
+    }
+}
+
+void pc_run(sampler2D code) {
+    pc_init(code);
+    pc_loop(code);
 
 }
 
+uniform sampler2D pc_code;
+
 void main() {
-    gl_FragColor = vec4(0.18, 0.45, 0.96, 1.0);
+    pc_run(pc_code);
+    gl_FragColor = vec4(pc_storage.r[0][0]);
 }

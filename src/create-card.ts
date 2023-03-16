@@ -8,7 +8,7 @@ export const createCard= ()=>{
     buffer.writeFloatLE(height, 4);
     let index = 8;
     // punch card code
-    buffer.writeFloatLE(-1, index);         // mov
+    buffer.writeFloatLE(-1.0, index);         // mov
     index += 4;
     buffer.writeFloatLE(10, index);         // vec0    
     index += 4;
@@ -20,11 +20,8 @@ export const createCard= ()=>{
     index += 4;
     buffer.writeFloatLE(1, index);          // 1
     index += 4;
-    buffer.writeFloatLE(5, index);          // out
-    index += 4;
-    buffer.writeFloatLE(10, index);         // vec0
-    index += 4;
-    buffer.writeFloatLE(0, index);          // 0
+
+    console.log(buffer);
     return {
         buffer,
         width,
