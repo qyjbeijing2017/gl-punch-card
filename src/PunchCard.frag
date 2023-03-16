@@ -239,14 +239,6 @@ void pc_Dot() {
     pc_storage.r[0][1][1] = dot(pc_storage.r[0][0], pc_storage.r[1][0]);
 }
 
-void pc_Dot3() {
-    pc_storage.r[0][1][1] = dot(pc_storage.r[0][0].xyz, pc_storage.r[1][0].xyz);
-}
-
-void pc_Dot2() {
-    pc_storage.r[0][1][1] = dot(pc_storage.r[0][0].xy, pc_storage.r[1][0].xy);
-}
-
 void pc_Crs() {
     pc_storage.r[0][1].xyz = cross(pc_storage.r[0][0].xyz, pc_storage.r[1][0].xyz);
 }
@@ -254,16 +246,6 @@ void pc_Crs() {
 void pc_Nor() {
     pc_storage.r[0][0] = normalize(pc_storage.r[0][0]);
 }
-
-void pc_Nor3() {
-    pc_storage.r[0][0].xyz = normalize(pc_storage.r[0][0].xyz);
-}
-
-void pc_Nor2() {
-    pc_storage.r[0][0].xy = normalize(pc_storage.r[0][0].xy);
-}
-
-
 
 
 void pc_init(sampler2D code) {
@@ -330,27 +312,11 @@ void pc_loop(sampler2D code) {
             continue;
         }
         if(opcode == 14.0) {
-            pc_Dot3();
-            continue;
-        }
-        if(opcode == 15.0) {
-            pc_Dot2();
-            continue;
-        }
-        if(opcode == 16.0) {
             pc_Crs();
             continue;
         }
-        if(opcode == 17.0) {
+        if(opcode == 15.0) {
             pc_Nor();
-            continue;
-        }
-        if(opcode == 18.0) {
-            pc_Nor3();
-            continue;
-        }
-        if(opcode == 19.0) {
-            pc_Nor2();
             continue;
         }
         break;
