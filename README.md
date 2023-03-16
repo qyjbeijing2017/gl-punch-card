@@ -46,10 +46,7 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 | ------ | --------- | ------------------ | --------------------- | ------------------------- |
 | 0      | exit      |                    |                       | exit the program          |
 | 1      | mov       | 内存或者寄存器位置 | 任意值                | Operand1 = Operand2       |
-| 2      | push      | 寄存器位置         |                       | register -> memory        |
-| 3      | pop       | 寄存器位置         |                       | memory -> register        |
-| 4      | in        | 寄存器位置         | float寄存器或者立即数 | input[Operand2]->register |
-| 5      | out       | 寄存器位置         | float寄存器或者立即数 | register->out[Operand2]   |
+| 2      | in        | 寄存器位置         | float寄存器或者立即数 | input[Operand2]->register |
 
 > 注意：在操作数（Operand）中必须有一个参数是寄存器位置否则无法判断参数类型
 

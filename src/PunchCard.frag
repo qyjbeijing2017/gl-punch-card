@@ -71,11 +71,18 @@ struct PCStoragePos {
 PCStoragePos pc_GetCardStoragePos(sampler2D code) {
     float Operand = pc_GetCardFloat(code);
     PCStoragePos sp;
-    sp.type = int(step(10.0, Operand) + step(100.0, Operand));
+    sp.type = int(step(100.0, Operand) + step(10.0, Operand));
     int index = int(Operand - step(10.0, Operand) * 10.0 - step(100.0, Operand) * 100.0);
-    sp.indexMat = index / 16;
-    sp.indexVec = (index - sp.indexMat * 16) / 4;
-    sp.indexFloat = index - sp.indexMat * 16 - sp.indexVec * 4;
+    if(sp.type == 2) {
+        sp.indexMat = index / 16;
+        sp.indexVec = (index - sp.indexMat * 16) / 4;
+        sp.indexFloat = index - sp.indexMat * 16 - sp.indexVec * 4;
+    } else if(sp.type == 1) {
+        sp.indexMat = index / 4;
+        sp.indexVec = index - sp.indexMat * 4;
+    } else if(sp.type == 0) {
+        sp.indexMat = index;
+    }
     return sp;
 }
 
@@ -221,6 +228,58 @@ void pc_Mov(sampler2D code, float op) {
     }
 }
 
+void pc_In(sampler2D code) {
+    PCStoragePos sp = pc_GetCardStoragePos(code);
+    PCStoragePos sp2 = pc_GetCardStoragePos(code);
+    if(sp.type == 0) {
+        pc_SetMatrixToStorage(sp, pc_GetMatrixFromInput(sp2));
+    } else if(sp.type == 1) {
+        pc_SetVectorToStorage(sp, pc_GetVectorFromInput(sp2));
+    } else if(sp.type == 2) {
+        pc_SetFloatToStorage(sp, pc_GetFloatFromInput(sp2));
+    }
+}
+
+void pc_Add(sampler2D code, float op) {
+    PCStoragePos sp = pc_GetCardStoragePos(code);
+    if(op > 0.0) {
+        PCStoragePos sp2 = pc_GetCardStoragePos(code);
+        if(sp.type == 2){
+            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp) + pc_GetFloatFromStorage(sp2));
+        } else if(sp.type == 1) {
+            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp) + pc_GetVectorFromStorage(sp2));
+        } else if(sp.type == 0) {
+            pc_SetMatrixToStorage(sp, pc_GetMatrixFromStorage(sp) + pc_GetMatrixFromStorage(sp2));
+        }
+    } else {
+        if(sp.type == 2){
+            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp) + pc_GetCardFloat(code));
+        } else if(sp.type == 1) {
+            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp) + pc_GetCardVector(code));
+        } else if(sp.type == 0) {
+            pc_SetMatrixToStorage(sp, pc_GetMatrixFromStorage(sp) + pc_GetCardMatrix(code));
+        }
+    }
+}
+
+void pc_Sub(sampler2D code, float op) {
+    PCStoragePos sp = pc_GetCardStoragePos(code);
+    if(op > 0.0) {
+        PCStoragePos sp2 = pc_GetCardStoragePos(code);
+        if(sp.type == 2){
+            pc_SetFloatToStorage(sp, pc_GetFloatFromStorage(sp) - pc_GetFloatFromStorage(sp2));
+        } else if(sp.type == 1) {
+            pc_SetVectorToStorage(sp, pc_GetVectorFromStorage(sp) - pc_GetVectorFromStorage(sp2));
+        }
+    } else {
+        if(sp.type == 2){
+            pc_SetFloatToStorage(sp, -pc_GetFloatFromStorage(sp));
+        } else if(sp.type == 1) {
+            pc_SetVectorToStorage(sp, -pc_GetVectorFromStorage(sp));
+        }
+    }
+}
+
 void pc_init(sampler2D code) {
     pc_storage.pos = 0;
     pc_storage.card_width = 100;
@@ -238,6 +297,18 @@ void pc_loop(sampler2D code) {
             pc_Mov(code, opcode);
             continue;
         }
+        if(absCode == 2.0) {
+            pc_In(code);
+            continue;
+        }
+        if(absCode == 3.0) {
+            pc_Add(code, opcode);
+            continue;
+        }
+        if(absCode == 4.0) {
+            pc_Sub(code, opcode);
+            continue;
+        }
         break;
     }
 }
@@ -245,7 +316,6 @@ void pc_loop(sampler2D code) {
 void pc_run(sampler2D code) {
     pc_init(code);
     pc_loop(code);
-
 }
 
 uniform sampler2D pc_code;
