@@ -1,8 +1,7 @@
-import { Configuration, ProvidePlugin } from 'webpack';
+import { Configuration } from 'webpack';
 import * as path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import 'webpack-dev-server';
-import * as buffer from 'buffer';
 
 const config: Configuration = {
     entry: './src/index.ts',
@@ -11,7 +10,7 @@ const config: Configuration = {
         filename: 'bundle.js',
     },
     resolve: {
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.js', '.frag', '.vert', '.glsl'],
     },
     module: {
         rules: [
@@ -25,6 +24,27 @@ const config: Configuration = {
                 use: [
                     'style-loader',
                     'css-loader'
+                ]
+            },
+            {
+                test: /\.(glsl|vs|fs|vert|frag)$/,
+                exclude: /node_modules/,
+                use: [
+                    'raw-loader',
+                    'glslify-loader',
+                ],
+            },
+            {
+                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            name: '[name].[ext]',
+                            outputPath: 'assets',
+                            limit: 8192,
+                        }
+                    }
                 ]
             },
         ],

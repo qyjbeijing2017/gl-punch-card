@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Users\qyjbe\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add @types/node
+  C:\Program Files\nodejs\node.exe C:\Users\qyjbe\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add file-loader url-loader --dev
 
 PATH: 
   C:\Python311\Scripts\;C:\Python311\;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\ProgramData\chocolatey\bin;C:\Program Files\nodejs\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\Git\cmd;D:\gsde\c\vcpkg;C:\Users\qyjbe\AppData\Local\Microsoft\WindowsApps;C:\Users\qyjbe\AppData\Roaming\npm
@@ -14,7 +14,7 @@ Platform:
   win32 x64
 
 Trace: 
-  Error: http://verdaccio.local/@types%2fnode: socket hang up
+  Error: http://verdaccio.local/file-loader: socket hang up
       at connResetException (node:internal/errors:717:14)
       at Socket.socketOnEnd (node:_http_client:520:23)
       at Socket.emit (node:events:524:35)
@@ -23,8 +23,8 @@ Trace:
 
 npm manifest: 
   {
-    "name": "test-gpu",
-    "version": "1.0.0",
+    "name": "gl-punch-card",
+    "version": "0.0.1",
     "main": "src/index.ts",
     "license": "MIT",
     "scripts": {
@@ -43,7 +43,14 @@ npm manifest:
       "webpack-dev-server": "^4.11.1"
     },
     "dependencies": {
+      "@types/node": "^18.14.4",
+      "buffer": "^6.0.3",
       "twgl.js": "^5.3.0"
+    },
+    "author": "yanjia qiu",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/qyjbeijing2017/gl-punch-card.git"
     }
   }
 
@@ -241,6 +248,11 @@ Lockfile:
     version "18.14.3"
     resolved "http://verdaccio.local/@types%2fnode/-/node-18.14.3.tgz#485070908df2e7b476ecaf83108e50b4d925a153"
     integrity sha512-1y36CC5iL5CMyKALzwX9cwwxcWIxvIBe3gzs4GrXWXEQ8klQnCZ2U/WDGiNrXHmQcUhnaun17XG9TEIDlGj2RA==
+  
+  "@types/node@^18.14.4":
+    version "18.14.4"
+    resolved "http://verdaccio.local/@types%2fnode/-/node-18.14.4.tgz#0e64ec0b35a772e1e3d849f9a0ff61782d0cb647"
+    integrity sha512-VhCw7I7qO2X49+jaKcAUwi3rR+hbxT5VcYF493+Z5kMLI0DL568b7JI4IDJaxWFH0D/xwmGJNoXisyX+w7GH/g==
   
   "@types/qs@*":
     version "6.9.7"
@@ -539,6 +551,11 @@ Lockfile:
     resolved "http://verdaccio.local/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
     integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
   
+  base64-js@^1.3.1:
+    version "1.5.1"
+    resolved "http://verdaccio.local/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
+    integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
+  
   batch@0.6.1:
     version "0.6.1"
     resolved "http://verdaccio.local/batch/-/batch-0.6.1.tgz#dc34314f4e679318093fc760272525f94bf25c16"
@@ -611,6 +628,14 @@ Lockfile:
     version "1.1.2"
     resolved "http://verdaccio.local/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
     integrity sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==
+  
+  buffer@^6.0.3:
+    version "6.0.3"
+    resolved "http://verdaccio.local/buffer/-/buffer-6.0.3.tgz#2ace578459cc8fbe2a70aaa8f52ee63b6a74c6c6"
+    integrity sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==
+    dependencies:
+      base64-js "^1.3.1"
+      ieee754 "^1.2.1"
   
   bytes@3.0.0:
     version "3.0.0"
@@ -1344,6 +1369,11 @@ Lockfile:
     version "5.1.0"
     resolved "http://verdaccio.local/icss-utils/-/icss-utils-5.1.0.tgz#c6be6858abd013d768e98366ae47e25d5887b1ae"
     integrity sha512-soFhflCVWLfRNOPU3iv5Z9VUdT44xFRbzjLsEzSr5AQmgqPMTHdU3PMT1Cf1ssx8fLNJDA1juftYl+PUcv3MqA==
+  
+  ieee754@^1.2.1:
+    version "1.2.1"
+    resolved "http://verdaccio.local/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
+    integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
   
   import-local@^3.0.2:
     version "3.1.0"

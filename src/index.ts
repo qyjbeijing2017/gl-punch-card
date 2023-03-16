@@ -1,6 +1,7 @@
 import * as twgl from 'twgl.js';
 import { Buffer } from 'buffer';
 import './index.css';
+import glsl from './PunchCard.frag';
 const m4 = twgl.m4;
 
 const reverseYAxios = (bufferRaw: Buffer, size:[number, number]) => {
@@ -19,14 +20,19 @@ const reverseYAxios = (bufferRaw: Buffer, size:[number, number]) => {
     return buffer;
 }
 
-function main() {
+async function main() {
     const canvas = document.getElementById('c') as HTMLCanvasElement;
     const gl = canvas.getContext('webgl2');
     if (!gl) {
         alert('WebGL2 not supported');
         return;
     }
+    console.log(`compile shader`);
+    let time = Date.now();
+    document.getElementById('fs')!.textContent = glsl;
     const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
+    console.log(`compile shader done, cost ${Date.now() - time}ms`);
+
 
     const planeInfo = twgl.createBufferInfoFromArrays(gl, {
         position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0],
