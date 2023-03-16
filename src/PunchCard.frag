@@ -86,48 +86,6 @@ PCStoragePos pc_GetCardStoragePos(sampler2D code) {
     return sp;
 }
 
-mat4 pc_GetMatrixFromInput(PCStoragePos sp) {
-    mat4 m;
-    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
-        if(sp.indexMat == i) {
-            m = pc_input.argm[i];
-        }
-    }
-    return m;
-}
-
-vec4 pc_GetVectorFromInput(PCStoragePos sp) {
-    vec4 v;
-    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
-        if(sp.indexMat == i) {
-            for(int j = 0; j < 4; j++) {
-                if(sp.indexVec == j) {
-                    v = pc_input.argm[i][j];
-                }
-            }
-        }
-    }
-    return v;
-}
-
-float pc_GetFloatFromInput(PCStoragePos sp) {
-    float f;
-    for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
-        if(sp.indexMat == i) {
-            for(int j = 0; j < 4; j++) {
-                if(sp.indexVec == j) {
-                    for(int k = 0; k < 4; k++) {
-                        if(sp.indexFloat == k) {
-                            f = pc_input.argm[i][j][k];
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return f;
-}
-
 mat4 pc_GetMatrixFromStorage(PCStoragePos sp) {
     mat4 m;
     for(int i = 0; i < PC_MATRIX_REGISTER_COUNT; i++) {
@@ -229,14 +187,11 @@ void pc_Mov(sampler2D code, float op) {
 }
 
 void pc_In(sampler2D code) {
-    PCStoragePos sp = pc_GetCardStoragePos(code);
-    PCStoragePos sp2 = pc_GetCardStoragePos(code);
-    if(sp.type == 0) {
-        pc_SetMatrixToStorage(sp, pc_GetMatrixFromInput(sp2));
-    } else if(sp.type == 1) {
-        pc_SetVectorToStorage(sp, pc_GetVectorFromInput(sp2));
-    } else if(sp.type == 2) {
-        pc_SetFloatToStorage(sp, pc_GetFloatFromInput(sp2));
+    int offset = int(pc_GetCardFloat(code));
+    for(int i = 0; i < PC_MAX_MATRIX_IN; i++) {
+        if(i == offset){
+            pc_storage.r[0] = pc_input.argm[i];
+        }
     }
 }
 
