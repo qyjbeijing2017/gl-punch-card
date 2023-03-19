@@ -60,7 +60,9 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 | 13     | dot       |                |                      | register\[0]\[0][0] = dot(register\[0][0], register\[0][1])  |
 | 14     | crs       |                |                      | register\[0][0] = vec4(cross(vec3(register\[0][0]), vec3(register\[0][1])), 0.0) |
 | 15     | nor       |                |                      | register\[0][0] = normalize(register\[0][0])                 |
-| 16     | sin       |                |                      | register\[0]\[0][0]                                          |
+| 16     | sin       |                |                      | register\[0]\[0][0] = sin(register\[0]\[0][0])               |
+| 17     | cos       |                |                      | register\[0]\[0][0] = cos(register\[0]\[0][0])               |
+| 18     | sqrt      |                |                      | register\[0]\[0][0] = sqrt(register\[0]\[0][0])              |
 
 > 注意：在操作数（Operand）中必须有一个参数是寄存器位置否则无法判断参数类型
 

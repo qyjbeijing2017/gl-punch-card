@@ -53,9 +53,23 @@ export const createEngine = async (canvas: HTMLCanvasElement) => {
   });
 
   const uniforms: {
-    code: WebGLTexture,
+    code?: WebGLTexture,
+    pc_input?:{
+      argm?:twgl.m4.Mat4[],
+      argt?: WebGLTexture[],
+    }
   } = {
     code: tex,
+    pc_input: {
+      argm: [
+        [
+          1, 0, 0, 0,
+          0, 1, 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1,
+        ],
+      ],
+    },
   };
 
   function render() {

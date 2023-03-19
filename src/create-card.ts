@@ -32,6 +32,14 @@ const add = (card: ICard,) => {
     card.buffer.writeFloatLE(3.0, card.index);       // add
 }
 
+const sub = (card: ICard,) => {
+    card.buffer.writeFloatLE(4.0, card.index);       // sub
+}
+
+const mul = (card: ICard,) => {
+    card.buffer.writeFloatLE(5.0, card.index);       // mul
+}
+
 const create = (width: number, height: number) => {
     const buffer = Buffer.alloc(width * height * 4, 0);
     buffer.writeFloatLE(width, 0);

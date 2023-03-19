@@ -1,5 +1,5 @@
 #define PC_MAX_INSTRUCTIONS 100
-#define PC_MAX_MATRIX_IN 4
+#define PC_MAX_MATRIX_IN 2
 #define PC_MAX_TEXTURES_IN 2
 #define PC_MATRIX_REGISTER_COUNT 2
 
@@ -203,32 +203,8 @@ void pc_Sub() {
     pc_storage.r[0] -= pc_storage.r[1];
 }
 
-void pc_MulMM() {
+void pc_Mul() {
     pc_storage.r[0] *= pc_storage.r[1];
-}
-
-void pc_MulMV() {
-    pc_storage.r[0][1] = pc_storage.r[0] * pc_storage.r[1][0];
-}
-
-void pc_MulVM() {
-    pc_storage.r[0][1] = pc_storage.r[0][0] * pc_storage.r[1];
-}
-
-void pc_MulVV() {
-    pc_storage.r[0][1] = pc_storage.r[0][0] * pc_storage.r[1][0];
-}
-
-void pc_MulMF() {
-    pc_storage.r[0] *= pc_storage.r[1][0][0];
-}
-
-void pc_MulVF() {
-    pc_storage.r[0][1] = pc_storage.r[0][0] * pc_storage.r[1][0][0];
-}
-
-void pc_MulFF() {
-    pc_storage.r[0][1][1] = pc_storage.r[0][0][0] * pc_storage.r[1][0][0];
 }
 
 void pc_Div() {
@@ -247,6 +223,17 @@ void pc_Nor() {
     pc_storage.r[0][0] = normalize(pc_storage.r[0][0]);
 }
 
+void pc_Sin() {
+    pc_storage.r[0][0][0] = sin(pc_storage.r[0][0][0]);
+}
+
+void pc_Cos() {
+    pc_storage.r[0][0][0] = cos(pc_storage.r[0][0][0]);
+}
+
+void pc_Sqrt() {
+    pc_storage.r[0][0][0] = sqrt(pc_storage.r[0][0][0]);
+}
 
 void pc_init(sampler2D code) {
     pc_storage.pos = 0;
@@ -276,31 +263,7 @@ void pc_loop(sampler2D code) {
             continue;
         }
         if(opcode == 5.0) {
-            pc_MulMM();
-            continue;
-        }
-        if(opcode == 6.0) {
-            pc_MulMV();
-            continue;
-        }
-        if(opcode == 7.0) {
-            pc_MulVM();
-            continue;
-        }
-        if(opcode == 8.0) {
-            pc_MulVV();
-            continue;
-        }
-        if(opcode == 9.0) {
-            pc_MulMF();
-            continue;
-        }
-        if(opcode == 10.0) {
-            pc_MulVF();
-            continue;
-        }
-        if(opcode == 11.0) {
-            pc_MulFF();
+            pc_Mul();
             continue;
         }
         if(opcode == 12.0) {
@@ -317,6 +280,18 @@ void pc_loop(sampler2D code) {
         }
         if(opcode == 15.0) {
             pc_Nor();
+            continue;
+        }
+        if(opcode == 16.0) {
+            pc_Sin();
+            continue;
+        }
+        if(opcode == 17.0) {
+            pc_Cos();
+            continue;
+        }
+        if(opcode == 18.0) {
+            pc_Sqrt();
             continue;
         }
         break;
