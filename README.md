@@ -12,7 +12,7 @@
 
 All data in `gl-punch-card` takes a 4-byte floating point number as an 'atom'. once  `gl-punch-card` read the data of one pixel from punch card each time as a float .
 
-在 `gl-punch-card` 中指令也是以float表示， 参数也是如此。比如`1.5+2`表示为`3.0 1.5 2`。
+在 `gl-punch-card` 中指令也是以float表示， 参数也是如此。例如，将第一个寄存器的数值存入第二个寄存器`mov r1 r2; 1.0 0.0 2.0`
 
 In `gl-punch-card`, instructions are also represented by floats, and so are parameters. For example, `1.5+2` means ` 3.0 1.5 2 `.
 
@@ -38,31 +38,9 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 
 **立即数（Immediate）**是一种特殊的操作数，它取数据的字面量作为输入而不是作为一个寄存器地址或者内存地址。
 
-立即数只作为最后一个操作数，如果需要将一个数作为立即数读取，需要将操作码的**第一位(bit)**置1。也就是说将操作数变为负值。例如，`mov rf1 rf2 ; 1.0 0.0 1.0` 立即数 `mov rf1 1.0 ; -1.0 0.0 1.0`
+立即数只作为最后一个操作数，如果需要将一个数作为立即数读取，需要将操作码的**第一位(bit)**置1。也就是说将操作数变为负值， 一般来讲现在只有mov拥有立即数。例如，`mov rf1 rf2 ; 1.0 0.0 1.0` 立即数 `mov rf1 1.0 ; -1.0 0.0 1.0`
 
 以下为当前`gl-punch-card`所有的指令:
-
-| Opcode | Assembled | Operand1       | Operand2             | Description                                                  |
-| ------ | --------- | -------------- | -------------------- | ------------------------------------------------------------ |
-| 0      | exit      |                |                      | exit the program                                             |
-| 1      | mov       | 寄存位置       | 寄存器位置或者立即数 | Operand1 = Operand2                                          |
-| 2      | in        | 输入参数offset |                      | input[Operand1]->register[0]                                 |
-| 3      | add       |                |                      | register[0] = register[0]-register[1]                        |
-| 4      | sub       |                |                      | register[0] = register[0]-register[1]                        |
-| 5      | mulMM     |                |                      | register[0] = register[0]*register[1]                        |
-| 6      | mulMV     |                |                      | register\[0][0] = register[0] * register\[1][0]              |
-| 7      | mulVM     |                |                      | register\[0][0] = register\[0][0] * register[1]              |
-| 8      | mulVV     |                |                      | register\[0][0] = register\[0][0] * register\[1][0]          |
-| 9      | mulMF     |                |                      | register\[0] = register\[0] * register\[1]\[0][0]            |
-| 10     | mulVF     |                |                      | register\[0][0] =  register\[0][0] * register\[1]\[0][0]     |
-| 11     | mulFF     |                |                      | register\[0]\[0][0] = register\[0]\[0][0] * register\[0]\[0][1] |
-| 12     | div       |                |                      | register[0] = register[0] / register[1]                      |
-| 13     | dot       |                |                      | register\[0]\[0][0] = dot(register\[0][0], register\[0][1])  |
-| 14     | crs       |                |                      | register\[0][0] = vec4(cross(vec3(register\[0][0]), vec3(register\[0][1])), 0.0) |
-| 15     | nor       |                |                      | register\[0][0] = normalize(register\[0][0])                 |
-| 16     | sin       |                |                      | register\[0]\[0][0] = sin(register\[0]\[0][0])               |
-| 17     | cos       |                |                      | register\[0]\[0][0] = cos(register\[0]\[0][0])               |
-| 18     | sqrt      |                |                      | register\[0]\[0][0] = sqrt(register\[0]\[0][0])              |
 
 > 注意：在操作数（Operand）中必须有一个参数是寄存器位置否则无法判断参数类型
 

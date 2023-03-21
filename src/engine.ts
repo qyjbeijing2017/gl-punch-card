@@ -1,23 +1,6 @@
 import { createCard } from './create-card'
 import * as twgl from 'twgl.js'
-import { Buffer } from 'buffer'
 const m4 = twgl.m4;
-
-const reverseYAxios = (bufferRaw: Buffer, size: [number, number]) => {
-  const [width, height] = size;
-  const buffer = Buffer.alloc(width * height * 4);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const index = (y * width + x) * 4;
-      const index2 = ((height - y - 1) * width + x) * 4;
-      buffer[index] = bufferRaw[index2];
-      buffer[index + 1] = bufferRaw[index2 + 1];
-      buffer[index + 2] = bufferRaw[index2 + 2];
-      buffer[index + 3] = bufferRaw[index2 + 3];
-    }
-  }
-  return buffer;
-}
 
 export const createEngine = async (canvas: HTMLCanvasElement) => {
 
@@ -71,6 +54,8 @@ export const createEngine = async (canvas: HTMLCanvasElement) => {
       ],
     },
   };
+
+  gl.clearColor(0, 0, 0, 1);
 
   function render() {
     if (!gl) {
