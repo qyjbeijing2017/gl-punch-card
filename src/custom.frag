@@ -1,10 +1,11 @@
 #ifdef GL_ES
 precision mediump float;
 #endif
-
-#include<punchCard>
+#define PC_TEXTURE0 cardTexture
 
 uniform sampler2D cardTexture;
+
+#include<punchCard>
 
 void main() {
     pc_run(cardTexture);

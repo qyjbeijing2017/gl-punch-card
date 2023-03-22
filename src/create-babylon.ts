@@ -4,6 +4,12 @@ import punchCard from './punchCard.glsl?raw';
 import customVertexShader from './custom.vert?raw';
 import customFragmentShader from './custom.frag?raw';
 import { createCard } from './create-card';
+import { Card, TypeCode } from './card';
+
+const sleep = async (ms: number) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 export const createBabylon: (canvas: HTMLCanvasElement) => () => void = (canvas: HTMLCanvasElement) => {
     const engine = new BABYLON.Engine(canvas, true);
@@ -31,6 +37,7 @@ export const createBabylon: (canvas: HTMLCanvasElement) => () => void = (canvas:
         BABYLON.Effect.IncludesShadersStore["punchCard"] = punchCard;
         BABYLON.Effect.ShadersStore["customVertexShader"] = customVertexShader;
         BABYLON.Effect.ShadersStore["customFragmentShader"] = customFragmentShader;
+        const time = Date.now();
         const shaderMaterial = new BABYLON.ShaderMaterial(
             "Custom Shader",
             scene,
@@ -43,14 +50,17 @@ export const createBabylon: (canvas: HTMLCanvasElement) => () => void = (canvas:
                 uniforms: ["world", "worldView", "worldViewProjection", "view", "projection", "time"],
             }
         );
-
         const card = createCard();
         const cardTexture = new BABYLON.RawTexture(card.buffer, card.width, card.height, BABYLON.Engine.TEXTUREFORMAT_RGBA, scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
         shaderMaterial.setTexture("cardTexture", cardTexture);
 
+        shaderMaterial.onCompiled = async () => {
+            const finishedTime = Date.now();
+            console.log(`Shader compiled in ${finishedTime - time}ms`);
+        };
+
         // mesh
         BABYLON.SceneLoader.ImportMeshAsync("", "", "well.glb", scene).then((result) => {
-            console.log(result);
             result.meshes[1].material = shaderMaterial;
         });
         return scene;

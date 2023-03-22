@@ -1,6 +1,12 @@
-#define PC_MAX_INSTRUCTIONS 100
-#define PC_MAX_MATRIX_IN 10
+#ifndef PC_MAX_INSTRUCTIONS
+#define PC_MAX_INSTRUCTIONS 1000
+#endif
+#ifndef PC_MAX_MATRIX_IN
+#define PC_MAX_MATRIX_IN 2
+#endif
+#ifndef PC_MATRIX_REGISTER_COUNT
 #define PC_MATRIX_REGISTER_COUNT 2
+#endif
 
 struct PCInput {
     mat4 argm[PC_MAX_MATRIX_IN];
@@ -250,14 +256,6 @@ void pc_Inverse() {
     pc_storage.r[0] = mat4(a11 * b11 - a12 * b10 + a13 * b09, a02 * b10 - a01 * b11 - a03 * b09, a31 * b05 - a32 * b04 + a33 * b03, a22 * b04 - a21 * b05 - a23 * b03, a12 * b08 - a10 * b11 - a13 * b07, a00 * b11 - a02 * b08 + a03 * b07, a32 * b02 - a30 * b05 - a33 * b01, a20 * b05 - a22 * b02 + a23 * b01, a10 * b10 - a11 * b08 + a13 * b06, a01 * b08 - a00 * b10 - a03 * b06, a30 * b04 - a31 * b02 + a33 * b00, a21 * b02 - a20 * b04 - a23 * b00, a11 * b07 - a10 * b09 - a12 * b06, a00 * b09 - a01 * b07 + a02 * b06, a31 * b01 - a30 * b03 - a32 * b00, a20 * b03 - a21 * b01 + a22 * b00) / det;
 }
 
-void pc_init(sampler2D code) {
-    pc_storage.pos = 0;
-    pc_storage.card_width = 100;
-    pc_storage.card_height = 100;
-    pc_storage.card_width = int(pc_GetCardFloat(code));
-    pc_storage.card_height = int(pc_GetCardFloat(code));
-}
-
 void pc_texture2D(sampler2D code) {
     float x = pc_GetCardFloat(code);
 #ifdef PC_TEXTURE0
@@ -310,6 +308,14 @@ void pc_texture2D(sampler2D code) {
         pc_storage.r[0][0] = texture2D(PC_TEXTURE9, pc_storage.r[0][0].xy);
     }
 #endif
+}
+
+void pc_init(sampler2D code) {
+    pc_storage.pos = 0;
+    pc_storage.card_width = 100;
+    pc_storage.card_height = 100;
+    pc_storage.card_width = int(pc_GetCardFloat(code));
+    pc_storage.card_height = int(pc_GetCardFloat(code));
 }
 
 void pc_loop(sampler2D code) {
