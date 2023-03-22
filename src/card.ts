@@ -10,7 +10,7 @@ export enum OpCode {
     movConst = -1,          // op1: address    op2: value       r[op1] = op2
     exit = 0,               //                                  exit
     mov = 1,                // op1: address1   op2: address2    r[op1] = r[op2]
-    pcIn = 2,               // op1: offset                      r[0] = pcIn[op1]
+    pcIn = 2,               // op1: offset                      r[0] = pc_input.argf[op1]
     add = 3,                //                                  r[0] = r[0] + r[1]
     sub = 4,                //                                  r[0] = r[0] - r[1]
     mul = 5,                //                                  r[0] = r[0] * r[1]
@@ -27,6 +27,7 @@ export enum OpCode {
     transpose = 16,         //                                  transpose(r[0]) -> r[0]
     inverse = 17,           //                                  inverse(r[0]) -> r[0]
     discard = 18,           //                                  discard
+    tex = 19,               // op1: address                     r[0][0] = texture2D(pc_input.argt[op1], r[0][1].xy)
 }
 
 export class Card {
@@ -173,5 +174,9 @@ export class Card {
     discard = () => {
         this.m_buffer.writeFloatLE(OpCode.discard, this.index);       // discard
         this.index += 4;
+    }
+
+    texture2D = (address: number) => {
+        this.m_buffer.writeFloatLE(OpCode.discard, this.index);       // texture2D
     }
 }

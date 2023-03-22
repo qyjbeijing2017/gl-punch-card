@@ -1,6 +1,10 @@
 import { createCard } from './create-card'
 import * as twgl from 'twgl.js'
+import { cubeArrays } from './cube-arrays';
+import { planeArrays } from './plane-arrays';
 const m4 = twgl.m4;
+
+
 
 export const createEngine = async (canvas: HTMLCanvasElement) => {
 
@@ -15,16 +19,10 @@ export const createEngine = async (canvas: HTMLCanvasElement) => {
   const programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
   console.log(`compile shader done, cost ${Date.now() - time}ms`);
 
-  const planeInfo = twgl.createBufferInfoFromArrays(gl, {
-    position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0],
-    texcoord: [0, 0, 1, 0, 0, 1, 1, 1],
-    indices: [0, 1, 2, 1, 3, 2],
-  });
+  const planeInfo = twgl.createBufferInfoFromArrays(gl, planeArrays);
 
+  // create card
   let { buffer, width, height } = createCard();
-
-  // buffer = reverseYAxios(buffer, [width, height]);
-  // reverse y axis
   const tex = twgl.createTexture(gl, {
     src: buffer,
     width,
@@ -45,12 +43,9 @@ export const createEngine = async (canvas: HTMLCanvasElement) => {
     code: tex,
     pc_input: {
       argm: [
-        [
-          1, 0, 0, 0,
-          0, 1, 0, 0,
-          0, 0, 1, 0,
-          0, 0, 0, 1,
-        ],
+        m4.identity(),
+        m4.identity(),
+        m4.identity(),
       ],
     },
   };

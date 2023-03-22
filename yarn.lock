@@ -404,6 +404,24 @@ ansi-styles@^3.2.1:
   dependencies:
     color-convert "^1.9.0"
 
+babylonjs-gltf2interface@^5.51.0:
+  version "5.51.0"
+  resolved "http://verdaccio.local/babylonjs-gltf2interface/-/babylonjs-gltf2interface-5.51.0.tgz#23c5cfb4ec021a71d0644695075b5ad788433852"
+  integrity sha512-2pOpNDTnvoW+6X2ITro4Rzd4+hwg/sVuszWMfuA+mU/zA+7k5hlQeDRoMi6PuagjUz7fTt52Lpf7PTwp4wIuuA==
+
+babylonjs-loaders@^5.51.0:
+  version "5.51.0"
+  resolved "http://verdaccio.local/babylonjs-loaders/-/babylonjs-loaders-5.51.0.tgz#83cb22dcd44a9719dc5d4471a8d90894b5b32cc5"
+  integrity sha512-PnUWz5kYrvp3cyjNWrS3dQ+dYxuqK/fWPQeG2u4TEKr5RoEPzZbs5jM+F9N4axAx5w2w3pDfVTGwSHXdqM3GYg==
+  dependencies:
+    babylonjs "^5.51.0"
+    babylonjs-gltf2interface "^5.51.0"
+
+babylonjs@^5.51.0:
+  version "5.51.0"
+  resolved "http://verdaccio.local/babylonjs/-/babylonjs-5.51.0.tgz#a043b8a68e21921a05047a52ce4235f09638ccc9"
+  integrity sha512-VV8M6GBRzBPCYyWseiepflzd71ulqfHx39qaPQNYhk4xo7fkY+M/qIBHdsyw4VtAflb1vaMZMCyjdu77grupSQ==
+
 base64-js@^1.3.1:
   version "1.5.1"
   resolved "http://verdaccio.local/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"

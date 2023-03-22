@@ -1,7 +1,6 @@
 #define PC_MAX_INSTRUCTIONS 100
 #define PC_MAX_MATRIX_IN 10
-#define PC_MAX_TEXTURES_IN 4
-#define PC_MATRIX_REGISTER_COUNT 2
+#define PC_MATRIX_REGISTER_COUNT 6
 
 #ifdef GL_ES
 precision mediump float;
@@ -9,9 +8,7 @@ precision mediump float;
 
 struct PCInput {
     mat4 argm[PC_MAX_MATRIX_IN];
-    sampler2D argt[PC_MAX_TEXTURES_IN];
-};
-uniform PCInput pc_input;
+} pc_input;
 
 struct PCStorage {
     mat4 r[PC_MATRIX_REGISTER_COUNT];
@@ -265,6 +262,60 @@ void pc_init(sampler2D code) {
     pc_storage.card_height = int(pc_GetCardFloat(code));
 }
 
+void pc_texture2D(sampler2D code) {
+    float x = pc_GetCardFloat(code);
+#ifdef PC_TEXTURE0
+    if(x == 0.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE0, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE1
+    if(x == 1.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE1, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE2
+    if(x == 2.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE2, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE3
+    if(x == 3.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE3, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE4
+    if(x == 4.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE4, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE5
+    if(x == 5.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE5, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE6
+    if(x == 6.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE6, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE7
+    if(x == 7.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE7, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE8
+    if(x == 8.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE8, pc_storage.r[0][0].xy);
+    }
+#endif
+#ifdef PC_TEXTURE9
+    if(x == 9.0) {
+        pc_storage.r[0][0] = texture2D(PC_TEXTURE9, pc_storage.r[0][0].xy);
+    }
+#endif
+}
+
 void pc_loop(sampler2D code) {
     bool isDisCard = false;
     for(int i = 0; i < PC_MAX_INSTRUCTIONS; i++) {
@@ -340,6 +391,10 @@ void pc_loop(sampler2D code) {
         if(opcode == 18.0) {
             isDisCard = true;
             break;
+        }
+        if(opcode == 19.0) {
+            pc_texture2D(code);
+            continue;
         }
         break;
     }
