@@ -1,5 +1,9 @@
 import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
+import punchCard from './punchCard.glsl?raw';
+import customVertexShader from './custom.vert?raw';
+import customFragmentShader from './custom.frag?raw';
+import { createCard } from './create-card';
 
 export const createBabylon: (canvas: HTMLCanvasElement) => () => void = (canvas: HTMLCanvasElement) => {
     const engine = new BABYLON.Engine(canvas, true);
@@ -23,8 +27,31 @@ export const createBabylon: (canvas: HTMLCanvasElement) => () => void = (canvas:
         // light
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
+        // material
+        BABYLON.Effect.IncludesShadersStore["punchCard"] = punchCard;
+        BABYLON.Effect.ShadersStore["customVertexShader"] = customVertexShader;
+        BABYLON.Effect.ShadersStore["customFragmentShader"] = customFragmentShader;
+        const shaderMaterial = new BABYLON.ShaderMaterial(
+            "Custom Shader",
+            scene,
+            {
+                vertex: "custom",
+                fragment: "custom",
+            },
+            {
+                attributes: ["position", "normal", "uv"],
+                uniforms: ["world", "worldView", "worldViewProjection", "view", "projection", "time"],
+            }
+        );
+
+        const card = createCard();
+        const cardTexture = new BABYLON.RawTexture(card.buffer, card.width, card.height, BABYLON.Engine.TEXTUREFORMAT_RGBA, scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+        shaderMaterial.setTexture("cardTexture", cardTexture);
+
         // mesh
         BABYLON.SceneLoader.ImportMeshAsync("", "", "well.glb", scene).then((result) => {
+            console.log(result);
+            result.meshes[1].material = shaderMaterial;
         });
         return scene;
     }
@@ -34,7 +61,8 @@ export const createBabylon: (canvas: HTMLCanvasElement) => () => void = (canvas:
         scene.render();
     });
 
-    window.addEventListener("resize", function () {6
+    window.addEventListener("resize", function () {
+        6
         engine.resize();
     });
 

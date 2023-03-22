@@ -2,10 +2,6 @@
 #define PC_MAX_MATRIX_IN 10
 #define PC_MATRIX_REGISTER_COUNT 2
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
 struct PCInput {
     mat4 argm[PC_MAX_MATRIX_IN];
 } pc_input;
@@ -406,11 +402,4 @@ void pc_loop(sampler2D code) {
 void pc_run(sampler2D code) {
     pc_init(code);
     pc_loop(code);
-}
-
-uniform sampler2D pc_code;
-
-void main() {
-    pc_run(pc_code);
-    gl_FragColor = vec4(pc_storage.r[0][0]);
 }
