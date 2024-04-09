@@ -2,7 +2,9 @@
 
 `gl-punch-card` 在片元着色器中创建了一个虚拟机。它会读取一张纹理（穿孔卡）作为脚本。因为**punch card**本身的特性，`gl-punch-card`语法类似汇编或者机器码。`gl-punch-card` 创立初衷是为了`ray-marching`传递`sdf(sign distance function)`信息，但是它似乎本身也可以传递其他代码信息。
 
-`gl-punch-card` create a virtual machine in fragment shader. It will read a texture as **punch card** from uniform as script. Because of the characteristics of **punch card** , the `gl-punch-card` syntax is similar to assembly or machine code. `gl-punch-card ` was originally created to transmit `sdf (sign distance function)` information in **ray-matching** , but it seems that it can also transmit other code information.
+
+
+`gl-punch-card` creates a virtual machine within a fragment shader. It reads a texture (punch card) as a script. Due to the inherent characteristics of the **punch card**, the syntax of `gl-punch-card` is akin to assembly or machine code. The initial purpose of `gl-punch-card` was to convey `sdf (signed distance function)` information for `ray-marching`, but it appears capable of transmitting other types of code information as well.
 
 
 
@@ -10,11 +12,13 @@
 
 在`gl-punch-card`中所有的数据都以4字节浮点数作为一个‘原子’。`gl-punch-card` 每次从穿孔卡读取一个像素的数据作为一个浮点值。
 
-All data in `gl-punch-card` takes a 4-byte floating point number as an 'atom'. once  `gl-punch-card` read the data of one pixel from punch card each time as a float .
-
 在 `gl-punch-card` 中指令也是以float表示， 参数也是如此。例如，将第一个寄存器的数值存入第二个寄存器`mov r1 r2; 1.0 0.0 2.0`
 
-In `gl-punch-card`, instructions are also represented by floats, and so are parameters. For example, `1.5+2` means ` 3.0 1.5 2 `.
+
+
+In `gl-punch-card`, all data is treated as an 'atom', represented by a 4-byte floating point number. `gl-punch-card` reads data from the punch card one pixel at a time, interpreting each pixel as a floating point value.
+
+In `gl-punch-card`, instructions are also represented as floats, and the same applies to parameters. For example, to move the value from the first register to the second register, the instruction is `mov r1 r2; 1.0 0.0 2.0`.
 
 
 
@@ -27,6 +31,13 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 > 注意，穿孔卡在做数据交换时不能做有损的压缩，会导致数据错误。
 
 
+
+
+The **Punch Card** is a special texture input as a uniform, where each pixel represents a float value.
+
+Punch Cards are read from the bottom left corner, meaning from the position `texture2D(card, vec2(0,0))`, **from left to right**, and **from bottom to top**. The first and second pixels of the punch card represent the width and height of the punch card, respectively, with the actual data starting from the third pixel.
+
+> Note that the Punch Card should not undergo lossy compression when exchanging data, as this would lead to data corruption.
 
 ## Instruction
 
@@ -44,9 +55,33 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 
 > 注意：在操作数（Operand）中必须有一个参数是寄存器位置否则无法判断参数类型
 
+
+
+`gl-punch-card` operates the virtual machine through **instructions** just like machine code. Each instruction is composed of an **Opcode** and several **Operands**, similar to machine code. The number of operands depends on the opcode.
+
+Both opcodes and operands are composed of one or several float values. For example, the operation to move 1.0 into the first floating-point register is as follows: `mov rf1 1.0 ; -1.0 0.0 1.0`
+
+**Opcode** generally represents memory, register addresses, or one or more literals. Register address opcodes are positive `Opcode >= 0`, while memory address opcodes are negative `Opcode < 0`.
+
+**Immediate** is a special type of operand that takes the literal value of the data as input, rather than as a register or memory address.
+
+An immediate is only used as the last operand. If a number needs to be read as an immediate, the **first bit** of the opcode must be set to 1, turning the opcode into a negative value. Currently, only the mov instruction accepts an immediate. For example, `mov rf1 rf2 ; 1.0 0.0 1.0` becomes an immediate with `mov rf1 1.0 ; -1.0 0.0 1.0`
+
+In the operand (Operand), there must be one parameter that is a register position; otherwise, it's impossible to determine the parameter type.
+
+Here are the instructions currently available in `gl-punch-card`:
+
+> Note: In the operands, there must be at least one parameter indicating a register position to determine the parameter type.
+
+
+
 ## Register
 
 在`gl-punch-card`中所有的通用寄存器都能够存储一个mat4大小的数据。同时也可以像汇编语言读取word数据那样读取vector数据或者float数据。
+
+
+
+In `gl-punch-card`, all general-purpose registers are capable of storing data up to the size of a `mat4`. Similar to assembly language, it's also possible to read data as vectors or float values, akin to reading word data.
 
 
 
@@ -70,3 +105,18 @@ In `gl-punch-card`, instructions are also represented by floats, and so are para
 
 
 
+
+In `gl-punch-card`, the Typecode represents the type information of a register and is a preset value. For instance, the type number for a `mat` is 100. When the opcode of a register is greater than this number, it indicates an operation on a register of the current type, with opcodes matched from largest to smallest.
+
+The Index, or register number, represents the register's number, which is obtained by subtracting the Typecode from the Operand: `index = Operand - Typecode`.
+
+For example, if an operand 103 is read from the punch-card, it first exceeds 100, indicating it is a float register. Its position is 3 = 103 - 100. This means it represents the fourth array general-purpose register (register positions start from 0).
+
+`gl-punch-card` includes the following registers:
+
+- Typecodes 0~999: General-purpose registers, used for storing data
+  - `mat`, with a Typecode of 0;
+  - `vector`, with a Typecode of 10;
+  - `float`, with a Typecode of 100;
+- Typecodes 1000~1010: Special registers, used for specific purposes
+  - `pos`, with an operand of 1001, used to indicate the pixel position of the next instruction;

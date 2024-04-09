@@ -2,6 +2,7 @@
 precision mediump float;
 #endif
 #define PC_TEXTURE0 cardTexture
+#define PC_MAX_INSTRUCTIONS 1000
 
 uniform sampler2D cardTexture;
 
